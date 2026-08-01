@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AWS ML Specialty: Domain 4 Quiz</title>
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        aws: {
+                            dark: '#1e293b', darker: '#0f172a',
+                            indigo: '#4338CA', indigoDark: '#3730A3',
+                            violet: '#6D28D9', light: '#f8fafc'
+                        }
+                    },
+                    animation: {
+                        'slide-up': 'slideUp 0.4s ease-out forwards',
+                        'fade-in': 'fadeIn 0.3s ease-out forwards',
+                    },
+                    keyframes: {
+                        slideUp: { '0%': { opacity: 0, transform: 'translateY(15px)' }, '100%': { opacity: 1, transform: 'translateY(0)' } },
+                        fadeIn: { '0%': { opacity: 0 }, '100%': { opacity: 1 } }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%); color: #334155; -webkit-font-smoothing: antialiased; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .option-card { transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
+        .option-card:hover:not(.answered) { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.025); border-color: #4338CA; }
+        .hidden-view { display: none !important; }
+        .explanation-text { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.3s ease-out; }
+        .explanation-text.expanded { grid-template-rows: 1fr; }
+        .explanation-inner { overflow: hidden; }
+    </style>
+</head>
+<body class="min-h-screen flex justify-center p-4 sm:p-6 md:p-8 pt-8 md:pt-12 pb-20">
+    <div id="app-container" class="bg-white rounded-2xl shadow-2xl overflow-hidden w-full max-w-5xl flex flex-col animate-slide-up ring-1 ring-indigo-100">
+        <!-- Header Section -->
+        <div class="bg-aws-darker text-white p-5 sm:p-6 border-b-[5px] border-aws-indigo relative flex flex-col md:flex-row justify-between items-center gap-4 shrink-0">
+            <div class="text-center md:text-left">
+                <h1 class="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight text-slate-50">Domain 4: Deployment & MLOps</h1>
+                <p class="text-indigo-200 mt-1 text-xs sm:text-sm font-medium">AWS Machine Learning Specialty</p>
+            </div>
+            <!-- Navigation Tabs -->
+            <div class="flex bg-slate-800 rounded-lg p-1.5 z-10 shadow-inner">
+                <button id="nav-tutorial" class="px-5 py-2 rounded-md text-sm font-semibold text-white bg-slate-700 transition-all shadow-sm">Tutorial</button>
+                <button id="nav-quiz" class="px-5 py-2 rounded-md text-sm font-semibold text-slate-300 hover:text-white transition-all">Practice Quiz</button>
+            </div>
+            <!-- Progress Bar -->
+            <div id="progress-container" class="absolute bottom-0 left-0 w-full h-[5px] bg-slate-800 hidden-view">
+                <div id="progress-bar" class="h-full bg-aws-violet transition-all duration-500 ease-out w-0 rounded-r-full shadow-[0_0_10px_rgba(109,40,217,0.5)]"></div>
+            </div>
+        </div>
+
+        <div class="p-4 sm:p-6 md:p-8 relative bg-slate-50/50">
+            <!-- Welcome Screen -->
+            <div id="welcome-screen" class="flex flex-col items-center justify-center max-w-2xl mx-auto text-center animate-fade-in py-10 md:py-16">
+                <div class="bg-indigo-50 text-aws-indigo rounded-2xl p-6 mb-6 shadow-inner border border-indigo-100">
+                    <svg class="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
+                </div>
+                <h2 class="text-2xl md:text-3xl font-bold mb-4 text-slate-800">Master Production Architecture</h2>
+                <p class="text-slate-600 mb-10 text-base md:text-lg leading-relaxed">This domain accounts for roughly 20% of the exam. Review the deep-dive tutorial on SageMaker endpoint limits, deployment routing, and Step Functions orchestration before tackling the practice exam.</p>
+                <div class="flex flex-col sm:flex-row gap-4 w-full justify-center">
+                    <button id="read-tutorial-btn" class="bg-white hover:bg-slate-50 text-slate-700 border-2 border-slate-200 font-semibold py-3.5 px-8 rounded-xl shadow-sm transition-all focus:outline-none focus:ring-4 focus:ring-slate-100">Read Tutorial First</button>
+                    <button id="start-btn" class="bg-aws-indigo hover:bg-aws-indigoDark text-white font-semibold py-3.5 px-8 rounded-xl shadow-lg shadow-indigo-200 transition-all flex items-center justify-center gap-2">Start Practice Quiz <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg></button>
+                </div>
+            </div>
+
+            <!-- Tutorial Screen -->
+            <div id="tutorial-screen" class="hidden-view flex-col animate-fade-in max-w-4xl mx-auto pb-10">
+                <div class="prose prose-slate prose-lg md:prose-xl prose-headings:text-slate-800 prose-h2:text-aws-indigo prose-h3:text-slate-700 prose-a:text-aws-violet max-w-none">
+                    <h2 id="tutorial-main-title" class="border-b border-slate-200 pb-2"></h2>
+                    <p id="tutorial-lead" class="lead text-slate-600"></p>
+                    <div id="tutorial-content"></div>
+                </div>
+                <div class="mt-12 flex justify-center">
+                    <button id="tutorial-to-quiz-btn" class="bg-aws-dark hover:bg-slate-900 text-white font-bold py-4 px-10 rounded-xl shadow-xl transition-all hover:-translate-y-1">I'm Ready: Start Practice Quiz</button>
+                </div>
+            </div>
+
+            <!-- Quiz Screen -->
+            <div id="quiz-screen" class="hidden-view flex-col animate-fade-in max-w-3xl mx-auto pb-6">
+                <!-- Quiz Header Info -->
+                <div class="flex justify-between items-center mb-6 bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+                    <div class="flex items-center gap-3">
+                        <div class="bg-indigo-100 text-indigo-700 w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg" id="question-number-badge">1</div>
+                        <span class="text-sm font-semibold text-slate-500 uppercase tracking-wider">Question</span>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <button id="retake-btn-header" class="text-sm font-semibold text-slate-500 hover:text-aws-indigo transition-colors flex items-center gap-1">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                            Retake
+                        </button>
+                        <div class="flex items-center gap-2 bg-slate-50 px-4 py-2 rounded-lg border border-slate-200">
+                            <span class="text-sm font-medium text-slate-500">Score:</span>
+                            <span id="score-tracker" class="text-base font-bold text-aws-indigo transition-transform duration-300">0</span>
+                        </div>
+                    </div>
+                </div>
+                <!-- Question Text -->
+                <h3 id="question-text" class="text-lg md:text-xl font-semibold text-slate-800 mb-6 leading-relaxed bg-white p-6 rounded-xl shadow-sm border border-slate-100"></h3>
+                <!-- Options -->
+                <div id="options-container" class="space-y-4 mb-8"></div>
+                <!-- Next Button -->
+                <div id="action-container" class="mt-6 hidden-view flex justify-end animate-fade-in pb-4">
+                    <button id="next-btn" class="bg-aws-darker hover:bg-slate-800 text-white font-semibold py-3.5 px-8 rounded-xl transition-all shadow-md flex items-center gap-2">
+                        <span id="next-btn-text">Next Question</span>
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path></svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Result Screen -->
+            <div id="result-screen" class="hidden-view flex-col items-center justify-center animate-fade-in py-16">
+                <div class="bg-white p-8 md:p-12 rounded-3xl shadow-xl border border-slate-100 text-center max-w-lg w-full relative overflow-hidden">
+                    <div class="absolute -top-24 -right-24 w-48 h-48 bg-indigo-50 rounded-full blur-3xl opacity-50 pointer-events-none"></div>
+                    <h2 class="text-3xl font-extrabold text-slate-800 mb-2 relative z-10">Quiz Complete!</h2>
+                    <p class="text-slate-500 mb-8 relative z-10">Domain 4: Deployment & MLOps</p>
+                    <div class="relative w-48 h-48 flex items-center justify-center rounded-full mx-auto mb-8 bg-slate-50 shadow-inner">
+                        <svg class="absolute inset-0 w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                            <circle class="text-slate-200 stroke-current" stroke-width="8" cx="50" cy="50" r="40" fill="transparent"></circle>
+                            <circle id="score-circle-svg" class="text-aws-indigo stroke-current transition-all duration-1000 ease-out" stroke-width="8" stroke-linecap="round" cx="50" cy="50" r="40" fill="transparent" stroke-dasharray="251.2" stroke-dashoffset="251.2"></circle>
+                        </svg>
+                        <div class="text-center z-10">
+                            <span id="final-score" class="text-5xl font-black text-slate-800 block">0%</span>
+                            <span id="final-fraction" class="text-sm font-medium text-slate-400 mt-1 block">0 / 20</span>
+                        </div>
+                    </div>
+                    <div id="result-message" class="text-lg text-slate-700 font-medium mb-10 leading-relaxed bg-slate-50 p-4 rounded-xl border border-slate-100"></div>
+                    <button id="restart-btn" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-semibold py-4 px-6 rounded-xl transition-all shadow-md flex items-center justify-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                        Retry Assessment
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TEMPLATES -->
+    <template id="tmpl-tutorial-section">
+        <div class="tutorial-section-container bg-white p-6 rounded-xl shadow-sm border border-slate-100 my-6 border-l-4">
+            <h3 class="section-title mt-0"></h3>
+            <p class="section-note text-sm text-slate-500 italic mt-0 mb-4"></p>
+            <ul class="section-list space-y-2"></ul>
+        </div>
+    </template>
+    
+    <template id="tmpl-tutorial-list-item">
+        <li><span></span></li>
+    </template>
+
+    <template id="tmpl-quiz-option">
+        <button class="option-card w-full text-left p-0 rounded-xl border-2 border-slate-200 bg-white text-slate-700 font-medium relative overflow-hidden group outline-none">
+            <div class="p-4 flex items-start gap-4">
+                <span class="option-letter inline-flex items-center justify-center w-8 h-8 rounded-full bg-slate-100 text-slate-500 font-bold text-sm flex-shrink-0 transition-colors"></span>
+                <span class="option-text pt-1 text-base leading-snug"></span>
+            </div>
+            <div class="explanation-text bg-slate-50 border-t border-transparent text-sm">
+                <div class="explanation-inner px-4 pb-4 pt-2 flex flex-col"></div>
+            </div>
+        </button>
+    </template>
+
+    <!-- MODULE IMPORTS -->
+    <script src="data/tutorialData.js"></script>
+    <script src="data/quizData.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

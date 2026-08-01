@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AWS ML Specialty: Domain 4 Quiz</title>
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        aws: {
+                            dark: '#1e293b',      
+                            darker: '#0f172a',    
+                            indigo: '#4338CA',    
+                            indigoDark: '#3730A3',
+                            violet: '#6D28D9',    
+                            light: '#f8fafc'      
+                        }
+                    },
+                    animation: {
+                        'slide-up': 'slideUp 0.4s ease-out forwards',
+                        'fade-in': 'fadeIn 0.3s ease-out forwards',
+                    },
+                    keyframes: {
+                        slideUp: {
+                            '0%': { opacity: 0, transform: 'translateY(15px)' },
+                            '100%': { opacity: 1, transform: 'translateY(0)' },
+                        },
+                        fadeIn: {
+                            '0%': { opacity: 0 },
+                            '100%': { opacity: 1 },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        body {
+            background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+            color: #334155;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8; 
+        }
+
+        .option-card {
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .option-card:hover:not(.answered) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.025);
+            border-color: #4338CA;
+        }
+
+        .hidden-view {
+            display: none !important;
+        }
+        
+        .explanation-text {
+            display: grid;
+            grid-template-rows: 0fr;
+            transition: grid-template-rows 0.3s ease-out;
+        }
+        
+        .explanation-text.expanded {
+            grid-template-rows: 1fr;
+        }
+        
+        .explanation-inner {
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex justify-center p-4 sm:p-6 md:p-8 pt-8 md:pt-12 pb-20">
+
+    <div id="app-container" class="bg-white rounded-2xl shadow-2xl overflow-hidden w-full max-w-5xl flex flex-col animate-slide-up ring-1 ring-indigo-100">
+        
+        <!-- Header Section -->
+        <div class="bg-aws-darker text-white p-5 sm:p-6 border-b-[5px] border-aws-indigo relative flex flex-col md:flex-row justify-between items-center gap-4 shrink-0">
+            <div class="text-center md:text-left">
+                <h1 class="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight text-slate-50">Domain 4: Deployment & MLOps</h1>
+                <p class="text-indigo-200 mt-1 text-xs sm:text-sm font-medium">AWS Machine Learning Specialty</p>
+            </div>
+            
+            <div class="flex bg-slate-800 rounded-lg p-1.5 z-10 shadow-inner">
+                <button id="nav-tutorial" class="px-5 py-2 rounded-md text-sm font-semibold text-white bg-slate-700 transition-all shadow-sm">Tutorial</button>
+                <button id="nav-quiz" class="px-5 py-2 rounded-md text-sm font-semibold text-slate-300 hover:text-white transition-all">Practice Quiz</button>
+            </div>
+            
+            <div id="progress-container" class="absolute bottom-0 left-0 w-full h-[5px] bg-slate-800 hidden-view">
+                <div id="progress-bar" class="h-full bg-aws-violet transition-all duration-500 ease-out w-0 rounded-r-full shadow-[0_0_10px_rgba(109,40,217,0.5)]"></div>
+            </div>
+        </div>
+
+        <div class="p-4 sm:p-6 md:p-8 relative bg-slate-50/50">
+            
+            <!-- Welcome Screen -->
+            <div id="welcome-screen" class="flex flex-col items-center justify-center max-w-2xl mx-auto text-center animate-fade-in py-10 md:py-16">
+                <div class="bg-indigo-50 text-aws-indigo rounded-2xl p-6 mb-6 shadow-inner border border-indigo-100">
+                    <svg class="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
+                </div>
+                <h2 class="text-2xl md:text-3xl font-bold mb-4 text-slate-800">Master Production Architecture</h2>
+                <p class="text-slate-600 mb-10 text-base md:text-lg leading-relaxed">This domain accounts for roughly 20% of the exam. Review the deep-dive tutorial on SageMaker endpoint limits, deployment routing, and Step Functions orchestration before tackling the 20-question practice exam.</p>
+                <div class="flex flex-col sm:flex-row gap-4 w-full justify-center">
+                    <button id="read-tutorial-btn" class="bg-white hover:bg-slate-50 text-slate-700 border-2 border-slate-200 font-semibold py-3.5 px-8 rounded-xl shadow-sm transition-all focus:outline-none focus:ring-4 focus:ring-slate-100">
+                        Read Tutorial First
+                    </button>
+                    <button id="start-btn" class="bg-aws-indigo hover:bg-aws-indigoDark text-white font-semibold py-3.5 px-8 rounded-xl shadow-lg shadow-indigo-200 transition-all focus:outline-none focus:ring-4 focus:ring-indigo-100 flex items-center justify-center gap-2">
+                        Start Practice Quiz
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tutorial Screen (Empty Outlet for Templates) -->
+            <div id="tutorial-screen" class="hidden-view flex-col animate-fade-in max-w-4xl mx-auto pb-10">
+                <div id="tutorial-content-outlet"></div>
+                
+                <div class="mt-12 flex justify-center">
+                    <button id="tutorial-to-quiz-btn" class="bg-aws-dark hover:bg-slate-900 text-white font-bold py-4 px-10 rounded-xl shadow-xl transition-all hover:-translate-y-1 focus:ring-4 focus:ring-slate-200">
+                        I'm Ready: Start Practice Quiz
+                    </button>
+                </div>
+            </div>
+
+            <!-- Quiz Screen -->
+            <div id="quiz-screen" class="hidden-view flex-col animate-fade-in max-w-3xl mx-auto pb-6">
+                <div class="flex justify-between items-center mb-6 bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+                    <div class="flex items-center gap-3">
+                        <div class="bg-indigo-100 text-indigo-700 w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg" id="question-number-badge">1</div>
+                        <span id="question-tracker" class="text-sm font-semibold text-slate-500 uppercase tracking-wider">of 20 Questions</span>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <button id="retake-quiz-btn" class="text-sm font-semibold text-rose-500 hover:text-rose-600 bg-rose-50 hover:bg-rose-100 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1 border border-rose-100">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                            <span class="hidden sm:inline">Retake</span>
+                        </button>
+                        <div class="flex items-center gap-2 bg-slate-50 px-4 py-2 rounded-lg border border-slate-200">
+                            <span class="text-sm font-medium text-slate-500">Current Score:</span>
+                            <span id="score-tracker" class="text-base font-bold text-aws-indigo">0</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <h3 id="question-text" class="text-lg md:text-xl font-semibold text-slate-800 mb-6 leading-relaxed bg-white p-6 rounded-xl shadow-sm border border-slate-100"></h3>
+
+                <div id="options-container" class="space-y-4 mb-8"></div>
+
+                <div id="action-container" class="mt-6 hidden-view flex justify-end animate-fade-in pb-4">
+                    <button id="next-btn" class="bg-aws-darker hover:bg-slate-800 text-white font-semibold py-3.5 px-8 rounded-xl transition-all shadow-md flex items-center gap-2">
+                        <span id="next-btn-text">Next Question</span>
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path></svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Result Screen -->
+            <div id="result-screen" class="hidden-view flex-col items-center justify-center animate-fade-in py-16">
+                <div class="bg-white p-8 md:p-12 rounded-3xl shadow-xl border border-slate-100 text-center max-w-lg w-full relative overflow-hidden">
+                    <div class="absolute -top-24 -right-24 w-48 h-48 bg-indigo-50 rounded-full blur-3xl opacity-50 pointer-events-none"></div>
+                    
+                    <h2 class="text-3xl font-extrabold text-slate-800 mb-2 relative z-10">Quiz Complete!</h2>
+                    <p class="text-slate-500 mb-8 relative z-10">Domain 4: Deployment & MLOps</p>
+                    
+                    <div class="relative w-48 h-48 flex items-center justify-center rounded-full mx-auto mb-8 bg-slate-50 shadow-inner">
+                        <svg class="absolute inset-0 w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                            <circle class="text-slate-200 stroke-current" stroke-width="8" cx="50" cy="50" r="40" fill="transparent"></circle>
+                            <circle id="score-circle-svg" class="text-aws-indigo stroke-current transition-all duration-1000 ease-out" stroke-width="8" stroke-linecap="round" cx="50" cy="50" r="40" fill="transparent" stroke-dasharray="251.2" stroke-dashoffset="251.2"></circle>
+                        </svg>
+                        <div class="text-center z-10">
+                            <span id="final-score" class="text-5xl font-black text-slate-800 block">0%</span>
+                            <span id="final-fraction" class="text-sm font-medium text-slate-400 mt-1 block">0 / 20</span>
+                        </div>
+                    </div>
+
+                    <div id="result-message" class="text-lg text-slate-700 font-medium mb-10 leading-relaxed bg-slate-50 p-4 rounded-xl border border-slate-100"></div>
+
+                    <button id="restart-btn" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-semibold py-4 px-6 rounded-xl transition-all shadow-md flex items-center justify-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                        Retry Assessment
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TEMPLATES FOR ENGINE -->
+    
+    <!-- 1. Main Tutorial Wrapper Template -->
+    <template id="tutorial-template">
+        <div class="prose prose-slate prose-lg md:prose-xl prose-headings:text-slate-800 prose-h2:text-aws-indigo prose-h3:text-slate-700 prose-a:text-aws-violet max-w-none">
+            <h2 class="border-b border-slate-200 pb-2 tutorial-main-title"></h2>
+            <p class="lead text-slate-600 tutorial-lead"></p>
+            <div class="tutorial-sections-container"></div>
+        </div>
+    </template>
+
+    <!-- 2. Tutorial Section Block Template -->
+    <template id="tutorial-section-template">
+        <div class="tutorial-section bg-white p-6 rounded-xl shadow-sm border border-slate-100 my-6 border-l-4">
+            <h3 class="mt-0 section-title"></h3>
+            <p class="text-sm text-slate-500 italic mt-0 mb-4 section-subtitle hidden"></p>
+            <ul class="space-y-2 section-list"></ul>
+        </div>
+    </template>
+
+    <!-- 3. Tutorial List Item Template -->
+    <template id="tutorial-list-item-template">
+        <li>
+            <strong class="item-label"></strong> <span class="item-text text-slate-600"></span>
+            <div class="item-subtext text-sm italic text-slate-500 mt-1 hidden"></div>
+        </li>
+    </template>
+
+    <!-- 4. Quiz Option Button Template -->
+    <template id="quiz-option-template">
+        <button class="option-card w-full text-left p-0 rounded-xl border-2 border-slate-200 bg-white text-slate-700 font-medium relative overflow-hidden group outline-none">
+            <div class="p-4 flex items-start gap-4">
+                <span class="option-letter inline-flex items-center justify-center w-8 h-8 rounded-full bg-slate-100 text-slate-500 font-bold text-sm flex-shrink-0 transition-colors"></span>
+                <span class="pt-1 text-base leading-snug option-text"></span>
+            </div>
+            <div class="explanation-text bg-slate-50 border-t border-transparent text-sm">
+                <div class="explanation-inner px-4 pb-4 pt-2">
+                    <span class="explanation-status font-bold block mb-1"></span>
+                    <span class="explanation-detail text-slate-600"></span>
+                </div>
+            </div>
+        </button>
+    </template>
+
+<script>
+    // --- JSON DATA STRUCTURES (STRICT BINDING) ---
+    const tutorialData = {
+        title: "Domain 4 Deep Dive: Deployment & MLOps",
+        lead: "This domain focuses on how to host models securely, scale them cost-effectively, orchestrate automated CI/CD pipelines, and monitor model degradation in production.",
+        sections: [
+            {
+                themeClass: "border-l-aws-indigo",
+                title: "1. Choosing the Right Deployment Target",
+                subtitle: "You must memorize the hard limits for each SageMaker endpoint type.",
+                items: [
+                    { label: "Real-Time Endpoints:", text: "Use for sub-second latency with consistent traffic. Max payload is 6 MB. Max timeout is 60 seconds." },
+                    { label: "Serverless Inference:", text: "Use when traffic is intermittent or sporadic. Scales down to zero (pay zero dollars during idle times). Max payload is 4 MB." },
+                    { label: "Asynchronous Inference:", text: "Use for large payloads (up to 1 GB) and long processing times (up to 1 hour).", subtext: "The API Gateway Trap: API Gateway has a strict 29-second timeout. If inference takes longer, use Asynchronous Inference and poll S3 to avoid a 504 Gateway Timeout." },
+                    { label: "Batch Transform:", text: "Use for offline inference on massive datasets. Max payload per record is 100 MB. Uses local HTTP POST requests to /invocations." },
+                    { label: "Multi-Model Endpoints (MME):", text: "Deploy thousands of models on shared infrastructure. Expect a latency spike (cold start) on the first request to a rarely used model as artifacts download from S3." }
+                ]
+            },
+            {
+                themeClass: "border-l-purple-500",
+                title: "2. Deployment Strategies & Routing",
+                items: [
+                    { label: "A/B Testing:", text: "Splits live traffic. Users receive predictions from the model they are routed to. Used to measure business impact." },
+                    { label: "Shadow Deployment:", text: "Sends a copy of live traffic to a new model to monitor it. Responses back to the user strictly come from the old model." },
+                    { label: "Canary Deployment:", text: "Shifts a small, safe percentage of traffic (e.g., 5%) to a new model to test safety before full rollout." },
+                    { label: "SageMaker Inference Pipelines:", text: "Deploys a linear sequence of containers (Preprocess -> Model -> Postprocess) as a single managed endpoint." }
+                ]
+            },
+            {
+                themeClass: "border-l-blue-500",
+                title: "3. Edge Computing & Security",
+                items: [
+                    { label: "SageMaker Neo:", text: "A compiler that optimizes a trained model's footprint for specific edge hardware architectures (like smart cameras)." },
+                    { label: "AWS IoT Greengrass:", text: "Enables secure deployment and local execution of models on edge devices that frequently lose internet connectivity." },
+                    { label: "Interface VPC Endpoint:", text: "Required if security mandates that inference traffic to a real-time endpoint must absolutely not traverse the public internet." }
+                ]
+            },
+            {
+                themeClass: "border-l-teal-500",
+                title: "4. MLOps & Model Monitoring",
+                items: [
+                    { label: "AWS Step Functions:", text: "When triggering a SageMaker Training Job, you must append .sync to the integration pattern to make the state machine wait for completion." },
+                    { label: "SageMaker Model Registry:", text: "The central catalog for model versions and cross-account approval statuses." },
+                    { label: "Data Quality Monitor:", text: "Detects if the statistical distribution of incoming live data drifts from the training baseline." },
+                    { label: "Model Explainability Monitor:", text: "Tracks Feature Attribution Drift (ensures the relative importance of features hasn't changed over time)." }
+                ]
+            }
+        ]
+    };
+
+    const quizData = [
+        {
+            question: "A retail company wants to test a new recommendation model in production. They want to send a copy of live traffic to the new model to monitor its performance, but the actual responses sent back to users must still come from the old model so the user experience is unaffected. Which deployment strategy should be used?",
+            options: ["A/B Testing.", "Canary Deployment.", "Shadow deployment.", "Blue/Green Deployment."],
+            correct: 2,
+            explanations: [
+                "Incorrect. A/B testing splits traffic, meaning some users would actually receive predictions from the new model, affecting their user experience.",
+                "Incorrect. A Canary deployment shifts actual live traffic (e.g., 5%) to the new model, meaning a portion of users would be impacted.",
+                "Correct! Shadow deployment actively logs the new model's predictions while completely isolating the user experience, ensuring responses strictly come from the old model.",
+                "Incorrect. Blue/Green actively shifts actual live traffic to the new infrastructure."
+            ]
+        },
+        {
+            question: "An ML team has trained a deep learning model using PyTorch. They need to deploy this model to thousands of edge cameras with limited compute and memory resources. Which AWS service or feature should they use to optimize the model's footprint for the specific hardware architecture of the cameras?",
+            options: ["AWS IoT Greengrass.", "Amazon SageMaker Edge Manager.", "Amazon SageMaker Neo.", "AWS Panorama."],
+            correct: 2,
+            explanations: [
+                "Incorrect. Greengrass provides the local runtime environment to execute the model, but it does not compile or shrink the model footprint itself.",
+                "Incorrect. Edge Manager manages fleets of edge devices and model deployments, but it is not a model compiler.",
+                "Correct! Amazon SageMaker Neo is a compiler designed specifically to optimize models for target edge hardware architectures, reducing footprint and improving performance.",
+                "Incorrect. Panorama is a physical appliance used to add computer vision to existing IP cameras, not a model compiler."
+            ]
+        },
+        {
+            question: "A healthcare company needs to run inference on high-resolution medical images. Each image payload is approximately 50 MB, and the complex computer vision inference process takes around 2 minutes per image to complete. Which SageMaker deployment option is architecturally required for this workload?",
+            options: ["Amazon SageMaker Serverless Inference.", "Amazon SageMaker Real-Time Endpoint.", "Amazon SageMaker Asynchronous Inference.", "Amazon SageMaker Batch Transform."],
+            correct: 2,
+            explanations: [
+                "Incorrect. Serverless inference has a strict 4 MB payload limit and a 60-second execution timeout.",
+                "Incorrect. Real-time endpoints have a strict 6 MB payload limit and a 60-second execution timeout.",
+                "Correct! Asynchronous inference supports massive payloads (up to 1 GB) and long timeouts (up to 1 hour), making it the only viable online option for this workload.",
+                "Incorrect. While Batch Transform can handle this, it is an offline job. The prompt implies a need for an inference architecture, typically requested on-demand."
+            ]
+        },
+        {
+            question: "A B2B SaaS company has trained 5,000 distinct, custom XGBoost models—one for each of their enterprise clients. The models share the same ML framework and container, but are rarely used simultaneously. Which deployment strategy provides the lowest hosting cost and least operational overhead?",
+            options: ["Use an Amazon SageMaker Multi-Model Endpoint.", "Use Amazon SageMaker Multi-Container Endpoints.", "Deploy 5,000 Serverless Inference Endpoints.", "Use AWS Step Functions with Lambda."],
+            correct: 0,
+            explanations: [
+                "Correct! Multi-Model Endpoints (MME) dynamically load thousands of models sharing the same framework into memory on a single fleet of instances, drastically reducing compute costs.",
+                "Incorrect. Multi-Container Endpoints host a maximum of 15 different containers on a single endpoint, failing the 5,000 model requirement.",
+                "Incorrect. Managing 5,000 distinct serverless endpoints introduces massive operational overhead compared to a single MME.",
+                "Incorrect. Step Functions cannot natively host machine learning models."
+            ]
+        },
+        {
+            question: "A data scientist is building an inference architecture that requires the strict sequential execution of three steps: data preprocessing using a scikit-learn script, model prediction using an XGBoost model, and post-processing using a custom Python script. How can this be deployed as a single, fully managed endpoint?",
+            options: ["Create an Amazon SageMaker Inference Pipeline.", "Orchestrate with AWS Step Functions.", "Deploy using an AWS Glue ETL Job.", "Use Amazon SageMaker Feature Store."],
+            correct: 0,
+            explanations: [
+                "Correct! SageMaker Inference Pipelines allow you to deploy a linear sequence of 2 to 15 containers (like pre/post-processing scripts) as a single, unified fully managed endpoint.",
+                "Incorrect. Step Functions orchestrates workflows, but it cannot package them into a single REST API endpoint for real-time inference.",
+                "Incorrect. AWS Glue is an offline ETL tool, it cannot be used to host real-time inference endpoints.",
+                "Incorrect. Feature Store is a database for ML features, not an inference hosting environment."
+            ]
+        },
+        {
+            question: "A bank deployed a credit risk model six months ago. Recently, the macroeconomic environment has changed drastically, and the distribution of incoming applicant income levels has shifted significantly away from the baseline established during training. Which SageMaker feature will automatically detect this specific issue?",
+            options: ["Amazon SageMaker Model Monitor with Data Quality.", "Amazon SageMaker Clarify Bias monitoring.", "Model Quality Monitor.", "Model Explainability Monitor."],
+            correct: 0,
+            explanations: [
+                "Correct! The Data Quality Monitor detects when the statistical distribution of incoming live data features drifts from the baseline data used during training.",
+                "Incorrect. Clarify Bias monitoring checks if predictions are unfairly targeting specific demographic facets, not general feature distribution drift.",
+                "Incorrect. Model Quality Monitor tracks if the actual accuracy of the model degrades, which requires waiting for ground-truth labels to be ingested.",
+                "Incorrect. Explainability Monitor tracks if the importance of features has changed, not the underlying distribution of the data itself."
+            ]
+        },
+        {
+            question: "An MLOps engineer is configuring an automated CI/CD pipeline. When a new model is approved, it must be deployed to production. The engineer wants to gradually shift 15% of the traffic to the new model, monitor for errors for 30 minutes, and automatically roll back if the 5xx error rate spikes. Which feature natively supports this?",
+            options: ["Amazon API Gateway canary release deployments.", "AWS CodeDeploy linear traffic shifting.", "Amazon SageMaker endpoint Blue/Green deployments.", "AWS Step Functions automated rollback."],
+            correct: 2,
+            explanations: [
+                "Incorrect. While API Gateway supports canaries, it lacks native integration with SageMaker model metrics for automated ML rollback.",
+                "Incorrect. CodeDeploy is for EC2/Lambda compute deployments, it does not natively orchestrate SageMaker ML endpoints.",
+                "Correct! SageMaker natively utilizes Blue/Green deployments combined with Canary/Linear shifting to safely test new models and auto-rollback based on CloudWatch alarms.",
+                "Incorrect. Step Functions orchestrates workflows but does not natively handle the traffic shifting mechanisms of a SageMaker endpoint."
+            ]
+        },
+        {
+            question: "An agricultural company has deployed ML models to autonomous tractors in the field. The tractors frequently lose internet connectivity but must continue making critical inference decisions locally in real-time. Which AWS service enables the secure deployment and local execution of these ML models directly on the tractors?",
+            options: ["Amazon SageMaker Edge Manager.", "AWS IoT Greengrass.", "AWS Outposts.", "Amazon EKS Anywhere."],
+            correct: 1,
+            explanations: [
+                "Incorrect. Edge Manager handles the management and monitoring of edge models, but Greengrass provides the actual local execution runtime.",
+                "Correct! AWS IoT Greengrass provides the local execution environment required to securely run ML models on physical edge devices when they are completely offline.",
+                "Incorrect. AWS Outposts is a massive physical server rack installed in data centers, not something placed on an autonomous tractor.",
+                "Incorrect. EKS Anywhere is for running Kubernetes on-premises, not specialized for disconnected IoT edge device inference."
+            ]
+        },
+        {
+            question: "A startup has a custom NLP model used for internal document summarization. The tool is used sporadically, sometimes sitting idle for days, but experiences sudden spikes when a batch of documents is uploaded at month-end. The team wants to minimize costs and pay zero dollars during idle times. Which deployment option is best?",
+            options: ["Amazon SageMaker Serverless Inference.", "Amazon SageMaker Asynchronous Inference.", "Amazon EC2 Spot Instances.", "Auto-scaling Real-time Endpoints."],
+            correct: 0,
+            explanations: [
+                "Correct! Serverless Inference explicitly scales down to zero instances when not in use, meaning you pay exactly zero dollars for inference compute during idle periods.",
+                "Incorrect. Asynchronous Inference requires at least one instance running or complex auto-scaling rules to scale to zero, making it less native than Serverless for this.",
+                "Incorrect. EC2 Spot instances can be interrupted and require managing underlying servers, defeating the fully managed requirement.",
+                "Incorrect. Real-time endpoints require at least one instance to remain running at all times, meaning you are billed even when idle."
+            ]
+        },
+        {
+            question: "An enterprise requires cross-account model promotion. A model trained in the 'Development' AWS account must be manually reviewed and approved by a manager before it is automatically deployed to the 'Production' account. Which AWS service acts as the central catalog to manage these approval statuses?",
+            options: ["AWS CodePipeline Manual Approval.", "Amazon SageMaker Model Registry.", "AWS Service Catalog.", "Amazon SageMaker Feature Store."],
+            correct: 1,
+            explanations: [
+                "Incorrect. CodePipeline executes the deployment, but it is not a central ML catalog for storing model artifacts and metadata.",
+                "Correct! Amazon SageMaker Model Registry acts as the central catalog specifically designed to store ML model versions, manage their approval statuses, and trigger downstream cross-account deployments.",
+                "Incorrect. Service Catalog is used by IT teams to create approved infrastructure portfolios, not ML model versioning.",
+                "Incorrect. Feature Store manages ML features for training and inference, not the final trained model artifacts."
+            ]
+        },
+        {
+            question: "A marketing team needs to generate predictions for a massive 500 GB CSV dataset of customer records sitting in Amazon S3. The predictions are not time-sensitive, do not require a live API, and only need to be processed once a month. What is the most cost-effective SageMaker capability for this task?",
+            options: ["Amazon SageMaker Batch Transform.", "Amazon SageMaker Asynchronous Inference.", "Amazon EMR with Spark MLlib.", "Amazon SageMaker Data Wrangler."],
+            correct: 0,
+            explanations: [
+                "Correct! Batch Transform is purpose-built for offline inference on massive datasets, spinning up compute to process the data and tearing it down automatically to save costs.",
+                "Incorrect. Asynchronous inference requires managing an active endpoint API, which is unnecessary for a once-a-month offline job.",
+                "Incorrect. Amazon EMR is a big data framework; utilizing it specifically for a SageMaker inference job introduces massive unnecessary architectural overhead.",
+                "Incorrect. Data Wrangler is a visual data preparation tool, not an inference engine."
+            ]
+        },
+        {
+            question: "A data science team wants to orchestrate an end-to-end ML workflow consisting of data processing, training, model evaluation, and deployment. They want to define this workflow entirely in Python using a native ML orchestration tool that integrates seamlessly with SageMaker Model Registry. Which tool should they use?",
+            options: ["AWS Step Functions.", "Amazon MWAA (Apache Airflow).", "Amazon SageMaker Pipelines.", "AWS CodePipeline."],
+            correct: 2,
+            explanations: [
+                "Incorrect. Step Functions requires defining the state machine in JSON (ASL) or using visual editors, not natively entirely in Python.",
+                "Incorrect. While MWAA (Airflow) uses Python, it is a heavy, generalized orchestration tool, not the SageMaker-native tool designed specifically for this purpose.",
+                "Correct! SageMaker Pipelines is the native orchestration tool purpose-built for SageMaker, allowing data scientists to define entire end-to-end workflows directly using the Python SDK.",
+                "Incorrect. CodePipeline is a general software CI/CD tool, not an ML-native pipeline orchestrated in Python."
+            ]
+        },
+        {
+            question: "A mobile app sends user data to an API Gateway, which triggers an AWS Lambda function, which invokes a SageMaker real-time endpoint. The deep learning model takes 40 seconds to generate a prediction. The API Gateway consistently returns a '504 Gateway Timeout' error. How should the engineer resolve this?",
+            options: ["Increase API Gateway timeout to 60 seconds.", "Increase Lambda timeout to 15 minutes.", "Use Asynchronous Inference and poll.", "Switch to a WebSocket API in API Gateway."],
+            correct: 2,
+            explanations: [
+                "Incorrect. API Gateway has a hard, unchangeable maximum timeout of exactly 29 seconds. It cannot be increased.",
+                "Incorrect. Even if Lambda's timeout is increased, the API Gateway sitting in front of it will still forcefully timeout at 29 seconds.",
+                "Correct! For inference taking longer than 29 seconds behind API Gateway, the architecture MUST switch to Asynchronous Inference, where the client receives a token and polls an S3 bucket for the final result.",
+                "Incorrect. WebSockets are for persistent bi-directional communication, not standard request-response inference patterns."
+            ]
+        },
+        {
+            question: "An ML engineer is deploying a model to a real-time SageMaker endpoint. They need the endpoint to automatically scale instances in and out based on the volume of incoming inference requests. Which specific CloudWatch metric should be used as the target for the target-tracking scaling policy?",
+            options: ["SageMakerVariantInvocationsPerInstance.", "CPUUtilization.", "MemoryUtilization.", "InvocationsPerEndpoint."],
+            correct: 0,
+            explanations: [
+                "Correct! `SageMakerVariantInvocationsPerInstance` is the standard, AWS-recommended metric to auto-scale SageMaker endpoints based on request traffic load.",
+                "Incorrect. CPU utilization can be heavily skewed by the specific algorithm and is often not a reliable indicator of pure incoming request volume.",
+                "Incorrect. Memory utilization remains relatively static once a model is loaded into RAM, making it a poor scaling metric.",
+                "Incorrect. `InvocationsPerEndpoint` measures total traffic, but does not account for how many instances are currently running, making it useless for per-instance scaling targets."
+            ]
+        },
+        {
+            question: "A company is using SageMaker Model Monitor to track their deployed Random Forest model. They want to ensure that the relative importance of the features used by the model has not changed over time compared to the baseline established during training (Feature Attribution Drift). Which type of monitor must they configure?",
+            options: ["Model Explainability Monitor.", "Model Quality Monitor.", "Data Quality Monitor.", "Bias Monitor."],
+            correct: 0,
+            explanations: [
+                "Correct! The Model Explainability Monitor explicitly tracks feature attribution drift, ensuring the features driving the model's decisions remain mathematically consistent with the training baseline.",
+                "Incorrect. Model Quality monitors the actual accuracy of predictions against ground truth labels.",
+                "Incorrect. Data Quality monitors the statistical distribution of the raw incoming data, not how the model attributes importance to those features.",
+                "Incorrect. Bias Monitor tracks if predictions are unfairly skewed against protected demographics."
+            ]
+        },
+        {
+            question: "An ML pipeline uses AWS Step Functions for orchestration. The pipeline needs to execute a SageMaker Training Job. To ensure the Step Functions state machine waits for the SageMaker Training Job to completely finish (succeed or fail) before moving to the next step, how should the task be configured?",
+            options: ["Set WaitForCompletion to True in the payload.", "Use the `.sync` service integration pattern.", "Configure a CloudWatch Event Rule.", "Use an AWS Lambda polling function."],
+            correct: 1,
+            explanations: [
+                "Incorrect. There is no `WaitForCompletion` parameter in standard SageMaker API payloads.",
+                "Correct! Appending `.sync` to the Step Functions API integration ensures the state machine natively pauses and waits for the long-running SageMaker job to finish before progressing.",
+                "Incorrect. While CloudWatch can detect job completion, it requires complex decoupled architecture. Native Step Functions handles this easily.",
+                "Incorrect. Lambda polling is an inefficient anti-pattern when native `.sync` integration exists."
+            ]
+        },
+        {
+            question: "A security team dictates that all inference traffic to a SageMaker real-time endpoint originating from an Amazon EC2 instance in a private subnet must absolutely not traverse the public internet. What must the ML engineer configure to satisfy this requirement?",
+            options: ["Create a Gateway VPC Endpoint for SageMaker.", "Create an Interface VPC Endpoint.", "Attach a NAT Gateway to the private subnet.", "Enable SageMaker Network Isolation."],
+            correct: 1,
+            explanations: [
+                "Incorrect. Gateway VPC Endpoints are exclusively for Amazon S3 and DynamoDB.",
+                "Correct! Accessing SageMaker inference APIs securely from a private VPC without internet traversal strictly requires an Interface VPC Endpoint powered by AWS PrivateLink.",
+                "Incorrect. A NAT Gateway routes traffic out to the public internet, completely violating the strict security mandate.",
+                "Incorrect. Network Isolation prevents a training container from making outbound network calls; it does not secure the inbound API inference traffic."
+            ]
+        },
+        {
+            question: "A team has developed a custom computer vision model packaged in a Docker container. They want to run offline batch inference on a massive dataset of images in S3 using SageMaker Batch Transform. How does SageMaker Batch Transform natively pass the data to the custom container during execution?",
+            options: ["By mapping S3 directly to `/opt/ml/input`.", "Via HTTP POST requests to `/invocations`.", "Through standard input (stdin).", "Using AWS Glue streaming."],
+            correct: 1,
+            explanations: [
+                "Incorrect. Mapping data to `/opt/ml/input` is the protocol for SageMaker Training Jobs, not Batch Transform inference jobs.",
+                "Correct! Internally, SageMaker Batch Transform functions by taking data from S3 and passing it to the custom container via local HTTP POST requests to the `/invocations` endpoint.",
+                "Incorrect. Containers in SageMaker do not accept inference data via standard terminal input streams.",
+                "Incorrect. Glue streaming is an entirely different AWS analytics service."
+            ]
+        },
+        {
+            question: "An engineer is utilizing a SageMaker Multi-Model Endpoint (MME) backed by CPU instances. When a specific model is invoked for the first time in several days, the client application experiences an unusually high spike in latency. What is the fundamental cause of this latency?",
+            options: ["The container is experiencing a cold start.", "The API Gateway is throttling the request.", "The model artifacts are being actively downloaded.", "The EBS volume is warming up."],
+            correct: 2,
+            explanations: [
+                "Incorrect. The container itself is already running on the MME instance. The latency is specific to the model.",
+                "Incorrect. API Gateway throttling results in 429 errors, not extreme latency spikes on a successful request.",
+                "Correct! MMEs dynamically load models. If a rarely used model isn't currently in memory, the initial request is heavily delayed while its artifacts are physically downloaded from S3.",
+                "Incorrect. EBS volume warming is an older EC2 concept and not the primary mechanism causing MME latency spikes."
+            ]
+        },
+        {
+            question: "A team is running a PyTorch Deep Learning model on a SageMaker real-time endpoint using a GPU instance. Monitoring shows that CPU utilization is at 10%, but the GPU memory is fully saturated. They want to drastically reduce hosting costs while maintaining high throughput. Which AWS hardware acceleration strategy is most cost-effective for this specific deep learning inference workload?",
+            options: ["Migrate to an AWS Inferentia instance type.", "Enable Elastic Inference on a CPU instance.", "Switch to an AWS Graviton instance.", "Implement Model Parallelism."],
+            correct: 0,
+            explanations: [
+                "Correct! AWS Inferentia chips (Inf1/Inf2 instances) are purpose-built by AWS to provide the highest performance and lowest cost specifically for deep learning inference workloads.",
+                "Incorrect. Elastic Inference is largely legacy and attaches minor GPU acceleration to CPUs, but Inferentia provides massively better cost-to-performance for heavy PyTorch loads.",
+                "Incorrect. Graviton processors are highly efficient general CPUs, but they will likely choke on a deep learning model that was previously saturating a full GPU.",
+                "Incorrect. Model Parallelism is a training technique used when a model is too large for one GPU; it is not a hosting hardware strategy."
+            ]
+        }
+    ];
+
+    let currentQuestionIndex = 0;
+    let score = 0;
+    let isAnswered = false;
+
+    const dom = {
+        appContainer: document.getElementById('app-container'),
+        welcomeScreen: document.getElementById('welcome-screen'),
+        tutorialScreen: document.getElementById('tutorial-screen'),
+        quizScreen: document.getElementById('quiz-screen'),
+        resultScreen: document.getElementById('result-screen'),
+        
+        startBtn: document.getElementById('start-btn'),
+        readTutorialBtn: document.getElementById('read-tutorial-btn'),
+        tutorialToQuizBtn: document.getElementById('tutorial-to-quiz-btn'),
+        navTutorial: document.getElementById('nav-tutorial'),
+        navQuiz: document.getElementById('nav-quiz'),
+        
+        questionText: document.getElementById('question-text'),
+        optionsContainer: document.getElementById('options-container'),
+        questionNumberBadge: document.getElementById('question-number-badge'),
+        scoreTracker: document.getElementById('score-tracker'),
+        retakeQuizBtn: document.getElementById('retake-quiz-btn'),
+        
+        actionContainer: document.getElementById('action-container'),
+        nextBtn: document.getElementById('next-btn'),
+        nextBtnText: document.getElementById('next-btn-text'),
+        
+        finalScore: document.getElementById('final-score'),
+        finalFraction: document.getElementById('final-fraction'),
+        resultMessage: document.getElementById('result-message'),
+        restartBtn: document.getElementById('restart-btn'),
+        
+        progressContainer: document.getElementById('progress-container'),
+        progressBar: document.getElementById('progress-bar'),
+        scoreCircleSvg: document.getElementById('score-circle-svg')
+    };
+
+    function renderTutorialEngine() {
+        const outlet = document.getElementById('tutorial-content-outlet');
+        outlet.innerHTML = ''; 
+        
+        const mainTemplate = document.getElementById('tutorial-template').content.cloneNode(true);
+        mainTemplate.querySelector('.tutorial-main-title').textContent = tutorialData.title;
+        mainTemplate.querySelector('.tutorial-lead').textContent = tutorialData.lead;
+        
+        const sectionsContainer = mainTemplate.querySelector('.tutorial-sections-container');
+        const sectionTemplate = document.getElementById('tutorial-section-template');
+        const itemTemplate = document.getElementById('tutorial-list-item-template');
+        
+        tutorialData.sections.forEach(section => {
+            const secClone = sectionTemplate.content.cloneNode(true);
+            const secDiv = secClone.querySelector('.tutorial-section');
+            secDiv.classList.add(section.themeClass);
+            secClone.querySelector('.section-title').textContent = section.title;
+            
+            if (section.subtitle) {
+                const subEl = secClone.querySelector('.section-subtitle');
+                subEl.textContent = section.subtitle;
+                subEl.classList.remove('hidden');
+            }
+            
+            const listContainer = secClone.querySelector('.section-list');
+            section.items.forEach(item => {
+                const itemClone = itemTemplate.content.cloneNode(true);
+                itemClone.querySelector('.item-label').textContent = item.label;
+                itemClone.querySelector('.item-text').textContent = item.text;
+                
+                if(item.subtext) {
+                    const subtextEl = itemClone.querySelector('.item-subtext');
+                    subtextEl.textContent = item.subtext;
+                    subtextEl.classList.remove('hidden');
+                }
+                listContainer.appendChild(itemClone);
+            });
+            
+            sectionsContainer.appendChild(secClone);
+        });
+        
+        outlet.appendChild(mainTemplate);
+    }
+
+    // Call it immediately to populate the DOM
+    renderTutorialEngine();
+
+    dom.startBtn.addEventListener('click', startQuiz);
+    dom.tutorialToQuizBtn.addEventListener('click', startQuiz);
+    dom.readTutorialBtn.addEventListener('click', showTutorial);
+    
+    dom.navTutorial.addEventListener('click', showTutorial);
+    dom.navQuiz.addEventListener('click', () => {
+        if (!dom.quizScreen.classList.contains('hidden-view') || !dom.resultScreen.classList.contains('hidden-view')) {
+            return;
+        }
+        if (currentQuestionIndex >= quizData.length) {
+            showResultsViewOnly();
+        } else {
+            startQuiz();
+        }
+    });
+
+    dom.nextBtn.addEventListener('click', () => {
+        currentQuestionIndex++;
+        if (currentQuestionIndex < quizData.length) {
+            loadQuestion();
+        } else {
+            showResults();
+        }
+    });
+
+    dom.retakeQuizBtn.addEventListener('click', () => {
+        currentQuestionIndex = 0;
+        score = 0;
+        startQuiz();
+    });
+    
+    dom.restartBtn.addEventListener('click', () => {
+        currentQuestionIndex = 0;
+        score = 0;
+        startQuiz();
+    });
+
+    function updateNavUI(activeTab) {
+        if (activeTab === 'tutorial') {
+            dom.navTutorial.classList.add('bg-slate-700', 'text-white', 'shadow-sm');
+            dom.navTutorial.classList.remove('text-slate-300', 'hover:text-white', 'bg-transparent');
+            dom.navQuiz.classList.remove('bg-slate-700', 'text-white', 'shadow-sm');
+            dom.navQuiz.classList.add('text-slate-300', 'hover:text-white', 'bg-transparent');
+        } else {
+            dom.navQuiz.classList.add('bg-slate-700', 'text-white', 'shadow-sm');
+            dom.navQuiz.classList.remove('text-slate-300', 'hover:text-white', 'bg-transparent');
+            dom.navTutorial.classList.remove('bg-slate-700', 'text-white', 'shadow-sm');
+            dom.navTutorial.classList.add('text-slate-300', 'hover:text-white', 'bg-transparent');
+        }
+    }
+
+    function hideAllScreens() {
+        dom.welcomeScreen.classList.add('hidden-view');
+        dom.tutorialScreen.classList.add('hidden-view');
+        dom.quizScreen.classList.add('hidden-view');
+        dom.resultScreen.classList.add('hidden-view');
+        dom.progressContainer.classList.add('hidden-view');
+    }
+
+    function scrollToTop() {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function showTutorial() {
+        hideAllScreens();
+        scrollToTop();
+        dom.tutorialScreen.classList.remove('hidden-view');
+        updateNavUI('tutorial');
+    }
+
+    function showResultsViewOnly() {
+        hideAllScreens();
+        scrollToTop();
+        dom.resultScreen.classList.remove('hidden-view');
+        updateNavUI('quiz');
+    }
+
+    function startQuiz() {
+        hideAllScreens();
+        scrollToTop();
+        dom.quizScreen.classList.remove('hidden-view');
+        dom.progressContainer.classList.remove('hidden-view');
+        dom.scoreTracker.textContent = score;
+        
+        updateNavUI('quiz');
+        
+        if (currentQuestionIndex === 0 && !isAnswered) {
+             loadQuestion();
+        }
+    }
+
+    function loadQuestion() {
+        isAnswered = false;
+        scrollToTop();
+        const currentQ = quizData[currentQuestionIndex];
+        
+        dom.questionNumberBadge.textContent = currentQuestionIndex + 1;
+        dom.questionText.textContent = currentQ.question;
+        
+        if (currentQuestionIndex === quizData.length - 1) {
+            dom.nextBtnText.textContent = "Quit and Result";
+        } else {
+            dom.nextBtnText.textContent = "Next Question";
+        }
+        
+        const progressPercent = ((currentQuestionIndex) / quizData.length) * 100;
+        dom.progressBar.style.width = `${progressPercent}%`;
+
+        dom.actionContainer.classList.add('hidden-view');
+        dom.optionsContainer.innerHTML = '';
+        
+        const optionTemplate = document.getElementById('quiz-option-template');
+
+        currentQ.options.forEach((optionText, index) => {
+            const clone = optionTemplate.content.cloneNode(true);
+            const btn = clone.querySelector('.option-card');
+            
+            clone.querySelector('.option-letter').textContent = String.fromCharCode(65 + index);
+            clone.querySelector('.option-text').textContent = optionText;
+            
+            btn.addEventListener('click', () => handleAnswerSelect(index, btn));
+            dom.optionsContainer.appendChild(clone);
+        });
+    }
+
+    function handleAnswerSelect(selectedIndex, selectedBtn) {
+        if (isAnswered) return;
+        isAnswered = true;
+
+        const currentQ = quizData[currentQuestionIndex];
+        const isCorrect = selectedIndex === currentQ.correct;
+
+        if (isCorrect) {
+            score++;
+            dom.scoreTracker.textContent = score;
+            dom.scoreTracker.classList.add('scale-125', 'text-green-500');
+            setTimeout(() => dom.scoreTracker.classList.remove('scale-125', 'text-green-500'), 300);
+        }
+
+        const allCards = dom.optionsContainer.querySelectorAll('.option-card');
+        
+        allCards.forEach((card, index) => {
+            card.classList.add('answered', 'cursor-default');
+            const letterBadge = card.querySelector('.option-letter');
+            const explContainer = card.querySelector('.explanation-text');
+            const explStatus = card.querySelector('.explanation-status');
+            const explDetail = card.querySelector('.explanation-detail');
+            
+            const isOptionCorrect = index === currentQ.correct;
+            
+            explDetail.textContent = currentQ.explanations[index];
+            
+            if (isOptionCorrect) {
+                explStatus.textContent = "Correct Answer";
+                explStatus.className = "explanation-status font-bold block mb-1 text-emerald-600";
+                
+                card.classList.remove('border-slate-200');
+                card.classList.add('border-emerald-400', 'bg-emerald-50/30');
+                letterBadge.classList.remove('bg-slate-100', 'text-slate-500');
+                letterBadge.classList.add('bg-emerald-500', 'text-white');
+                explContainer.classList.add('border-emerald-100');
+                
+            } else {
+                explStatus.textContent = "Incorrect";
+                explStatus.className = "explanation-status font-bold block mb-1 text-rose-500";
+                
+                if (index === selectedIndex) {
+                    card.classList.remove('border-slate-200');
+                    card.classList.add('border-rose-300', 'bg-rose-50/30');
+                    letterBadge.classList.remove('bg-slate-100', 'text-slate-500');
+                    letterBadge.classList.add('bg-rose-500', 'text-white');
+                    explContainer.classList.add('border-rose-100');
+                } else {
+                    card.classList.add('opacity-70');
+                    explContainer.classList.add('border-slate-200');
+                }
+            }
+            
+            setTimeout(() => {
+                explContainer.classList.add('expanded');
+            }, 50 * index); 
+        });
+
+        dom.actionContainer.classList.remove('hidden-view');
+        
+        setTimeout(() => {
+            dom.actionContainer.scrollIntoView({
+                behavior: 'smooth',
+                block: 'nearest'
+            });
+        }, 400);
+    }
+
+    function showResults() {
+        hideAllScreens();
+        scrollToTop();
+        dom.resultScreen.classList.remove('hidden-view');
+        dom.progressBar.style.width = `100%`;
+
+        const totalQuestions = quizData.length;
+        const percent = Math.round((score / totalQuestions) * 100);
+        
+        dom.finalFraction.textContent = `${score} / ${totalQuestions} Correct`;
+        dom.scoreCircleSvg.style.strokeDashoffset = "251.2";
+        
+        if (percent >= 80) {
+            dom.resultMessage.innerHTML = `<span class="text-emerald-600 font-bold block mb-2 text-xl">Outstanding Performance!</span> You have demonstrated expert-level mastery of SageMaker Endpoints, CI/CD, and Edge deployments.`;
+            dom.scoreCircleSvg.classList.replace('text-aws-indigo', 'text-emerald-500');
+        } else if (percent >= 60) {
+            dom.resultMessage.innerHTML = `<span class="text-aws-indigo font-bold block mb-2 text-xl">Solid Effort.</span> You understand the fundamentals well, but reviewing deployment limits and VPC networking will push you to expert level.`;
+        } else {
+            dom.resultMessage.innerHTML = `<span class="text-rose-500 font-bold block mb-2 text-xl">Keep Reviewing.</span> The concepts in Domain 4 are highly technical. Focus deeply on the constraints (like API Gateway timeouts) and endpoint routing strategies.`;
+            dom.scoreCircleSvg.classList.replace('text-aws-indigo', 'text-rose-500');
+        }
+
+        if (percent === 0) {
+            dom.finalScore.textContent = `0%`;
+            return;
+        }
+
+        let currentPercent = 0;
+        const animationDuration = 1000;
+        const intervalTime = animationDuration / percent;
+        
+        const interval = setInterval(() => {
+            currentPercent++;
+            dom.finalScore.textContent = `${currentPercent}%`;
+            
+            if (currentPercent >= percent) {
+                clearInterval(interval);
+                dom.finalScore.textContent = `${percent}%`;
+            }
+        }, intervalTime);
+
+        setTimeout(() => {
+            const offset = 251.2 - (251.2 * percent) / 100;
+            dom.scoreCircleSvg.style.strokeDashoffset = offset;
+        }, 100);
+    }
+</script>
+</body>
+</html>
