@@ -1,6 +1,7 @@
 let currentQuestionIndex = 0;
 let score = 0;
 let isAnswered = false;
+let activeQuizData = quizData; // Dynamically swapped later
 
 const dom = {
     appContainer: document.getElementById('app-container'),
@@ -14,6 +15,9 @@ const dom = {
     tutorialToQuizBtn: document.getElementById('tutorial-to-quiz-btn'),
     navTutorial: document.getElementById('nav-tutorial'),
     navQuiz: document.getElementById('nav-quiz'),
+    navAiQuiz: document.getElementById('nav-ai-quiz'),
+    startAiBtn: document.getElementById('start-ai-btn'),
+    loadingScreen: document.getElementById('loading-screen'),
     
     tutorialContent: document.getElementById('tutorial-content'),
     tutorialTitle: document.getElementById('tutorial-main-title'),
@@ -45,18 +49,22 @@ const templates = {
     quizOption: document.getElementById('tmpl-quiz-option')
 };
 
-dom.startBtn.addEventListener('click', startQuiz);
+dom.startBtn.addEventListener('click', () => { activeQuizData = quizData; startQuiz(); });
+dom.startAiBtn.addEventListener('click', startAIQuizGenerator);
 dom.tutorialToQuizBtn.addEventListener('click', startQuiz);
 dom.readTutorialBtn.addEventListener('click', showTutorial);
 dom.retakeBtnHeader.addEventListener('click', restartQuiz);
 dom.restartBtn.addEventListener('click', restartQuiz);
 
 dom.navTutorial.addEventListener('click', showTutorial);
+dom.navAiQuiz.addEventListener('click', startAIQuizGenerator);
+
 dom.navQuiz.addEventListener('click', () => {
+    activeQuizData = quizData;
     if (!dom.quizScreen.classList.contains('hidden-view') || !dom.resultScreen.classList.contains('hidden-view')) {
         return;
     }
-    if (currentQuestionIndex >= quizData.length) {
+    if (currentQuestionIndex >= activeQuizData.length) {
         showResultsViewOnly();
     } else {
         startQuiz();
@@ -65,7 +73,7 @@ dom.navQuiz.addEventListener('click', () => {
 
 dom.nextBtn.addEventListener('click', () => {
     currentQuestionIndex++;
-    if (currentQuestionIndex < quizData.length) {
+    if (currentQuestionIndex < activeQuizData.length) {
         loadQuestion();
     } else {
         showResults();
@@ -116,18 +124,18 @@ function renderTutorial() {
 function loadQuestion() {
     isAnswered = false;
     scrollToTop();
-    const currentQ = quizData[currentQuestionIndex];
+    const currentQ = activeQuizData[currentQuestionIndex];
     
     dom.questionNumberBadge.textContent = currentQuestionIndex + 1;
     dom.questionText.textContent = currentQ.question;
     
-    if (currentQuestionIndex === quizData.length - 1) {
+    if (currentQuestionIndex === activeQuizData.length - 1) {
         dom.nextBtnText.textContent = "Quit and Result";
     } else {
         dom.nextBtnText.textContent = "Next Question";
     }
     
-    const progressPercent = ((currentQuestionIndex) / quizData.length) * 100;
+    const progressPercent = ((currentQuestionIndex) / activeQuizData.length) * 100;
     dom.progressBar.style.width = `${progressPercent}%`;
 
     dom.actionContainer.classList.add('hidden-view');
@@ -152,7 +160,7 @@ function handleAnswerSelect(selectedIndex, selectedBtn) {
     if (isAnswered) return;
     isAnswered = true;
 
-    const currentQ = quizData[currentQuestionIndex];
+    const currentQ = activeQuizData[currentQuestionIndex];
     const isCorrect = selectedIndex === currentQ.correct;
 
     if (isCorrect) {
@@ -225,23 +233,27 @@ function handleAnswerSelect(selectedIndex, selectedBtn) {
 }
 
 function updateNavUI(activeTab) {
-    if (activeTab === 'tutorial') {
-        dom.navTutorial.classList.add('bg-slate-700', 'text-white', 'shadow-sm');
-        dom.navTutorial.classList.remove('text-slate-300', 'hover:text-white', 'bg-transparent');
-        dom.navQuiz.classList.remove('bg-slate-700', 'text-white', 'shadow-sm');
-        dom.navQuiz.classList.add('text-slate-300', 'hover:text-white', 'bg-transparent');
-    } else {
-        dom.navQuiz.classList.add('bg-slate-700', 'text-white', 'shadow-sm');
-        dom.navQuiz.classList.remove('text-slate-300', 'hover:text-white', 'bg-transparent');
-        dom.navTutorial.classList.remove('bg-slate-700', 'text-white', 'shadow-sm');
-        dom.navTutorial.classList.add('text-slate-300', 'hover:text-white', 'bg-transparent');
-    }
+    [dom.navTutorial, dom.navQuiz, dom.navAiQuiz].forEach(el => {
+        el.classList.remove('bg-slate-700', 'text-white', 'shadow-sm');
+        if (el === dom.navAiQuiz) {
+            el.classList.add('text-purple-300');
+        } else {
+            el.classList.add('text-slate-300');
+        }
+    });
+
+    const activeEl = activeTab === 'tutorial' ? dom.navTutorial : 
+                     activeTab === 'ai-quiz' ? dom.navAiQuiz : dom.navQuiz;
+    
+    activeEl.classList.add('bg-slate-700', 'text-white', 'shadow-sm');
+    activeEl.classList.remove('text-slate-300', 'text-purple-300');
 }
 
 function hideAllScreens() {
     dom.welcomeScreen.classList.add('hidden-view');
     dom.tutorialScreen.classList.add('hidden-view');
     dom.quizScreen.classList.add('hidden-view');
+    dom.loadingScreen.classList.add('hidden-view');
     dom.resultScreen.classList.add('hidden-view');
     dom.progressContainer.classList.add('hidden-view');
 }
@@ -288,7 +300,7 @@ function showResults() {
     dom.resultScreen.classList.remove('hidden-view');
     dom.progressBar.style.width = `100%`;
 
-    const totalQuestions = quizData.length;
+    const totalQuestions = activeQuizData.length;
     const percent = Math.round((score / totalQuestions) * 100);
     
     dom.finalFraction.textContent = `${score} / ${totalQuestions} Correct`;
@@ -339,6 +351,99 @@ function showResults() {
         const offset = 251.2 - (251.2 * percent) / 100;
         dom.scoreCircleSvg.style.strokeDashoffset = offset;
     }, 100);
+}
+
+
+async function startAIQuizGenerator() {
+    hideAllScreens();
+    scrollToTop();
+    dom.loadingScreen.classList.remove('hidden-view');
+    updateNavUI('ai-quiz');
+
+    const API_KEY = config.GEMINI_API_KEY;
+    
+    if (!API_KEY || API_KEY === 'YOUR_GEMINI_API_KEY_HERE') {
+        alert("Please insert your Gemini API key in js/config.js to use this feature.");
+        showTutorial();
+        return;
+    }
+
+    // --- Pre-flight API Key Status Check ---
+    const loadingText = dom.loadingScreen.querySelector('p');
+    loadingText.textContent = "Verifying API key status...";
+    
+    try {
+        const checkResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${API_KEY}`);
+        if (!checkResponse.ok) {
+            throw new Error("Invalid API Key or unauthorized access.");
+        }
+    } catch (error) {
+        console.error("API Key Check Failed:", error);
+        alert("API Key verification failed. Please check your API key in js/config.js and your internet connection.");
+        loadingText.textContent = "Gemini is analyzing the tutorial data and crafting 20 new questions to test your understanding."; // Reset
+        showTutorial();
+        return;
+    }
+
+    // --- Context Expansion ---
+    loadingText.textContent = "API Key verified! Gemini is analyzing tutorials and existing questions to craft 20 new ones...";
+
+    const promptText = `You are an expert AWS Machine Learning Specialty instructor. 
+Based ONLY on the following tutorial data, generate 20 advanced practice questions.
+Ensure the new questions DO NOT duplicate the existing static questions provided below.
+Return ONLY a valid JSON array.
+
+Tutorial Data:
+${JSON.stringify(tutorialData)}
+
+Existing Static Questions (DO NOT DUPLICATE THESE):
+${JSON.stringify(quizData)}
+
+Required JSON Structure:
+[
+  {
+    "question": "Question text...",
+    "options": ["Option A", "Option B", "Option C", "Option D"],
+    "correct": 2, // Integer index (0-3)
+    "explanations": ["Why A is incorrect", "Why B is incorrect", "Why C is correct", "Why D is incorrect"]
+  }
+]`;
+
+    try {
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{ parts: [{ text: promptText }] }],
+                generationConfig: {
+                    temperature: 0.2,
+                    responseMimeType: "application/json"
+                }
+            })
+        });
+
+        if (!response.ok) throw new Error("API request failed. Check your network.");
+
+        const data = await response.json();
+        const jsonString = data.candidates[0].content.parts[0].text;
+        const aiQuestions = JSON.parse(jsonString);
+
+        // Assign generated questions to the active state
+        activeQuizData = aiQuestions;
+        
+        // Reset state
+        currentQuestionIndex = 0;
+        score = 0;
+        
+        loadingText.textContent = "Gemini is analyzing the tutorial data and crafting 20 new questions to test your understanding."; // Reset for next time
+        startQuiz();
+
+    } catch (error) {
+        console.error("AI Generation Error:", error);
+        alert("Failed to generate AI Quiz. Check console for details.");
+        loadingText.textContent = "Gemini is analyzing the tutorial data and crafting 20 new questions to test your understanding."; // Reset for next time
+        showTutorial();
+    }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
