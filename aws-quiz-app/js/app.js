@@ -57,13 +57,27 @@ dom.retakeBtnHeader.addEventListener('click', restartQuiz);
 dom.restartBtn.addEventListener('click', restartQuiz);
 
 dom.navTutorial.addEventListener('click', showTutorial);
-dom.navAiQuiz.addEventListener('click', startAIQuizGenerator);
+dom.navAiQuiz.addEventListener('click', () => {
+    if (activeQuizData !== quizData && activeQuizData.length > 0) {
+        startQuiz(); // Resume active AI quiz
+    } else {
+        startAIQuizGenerator();
+    }
+});
 
 dom.navQuiz.addEventListener('click', () => {
-    activeQuizData = quizData;
+    if (activeQuizData !== quizData) {
+        // Swapping from AI to Static: reset state to prevent index collision
+        activeQuizData = quizData;
+        currentQuestionIndex = 0;
+        score = 0;
+        isAnswered = false;
+    }
+    
     if (!dom.quizScreen.classList.contains('hidden-view') || !dom.resultScreen.classList.contains('hidden-view')) {
         return;
     }
+    
     if (currentQuestionIndex >= activeQuizData.length) {
         showResultsViewOnly();
     } else {
@@ -273,7 +287,7 @@ function showResultsViewOnly() {
     hideAllScreens();
     scrollToTop();
     dom.resultScreen.classList.remove('hidden-view');
-    updateNavUI('quiz');
+    updateNavUI(activeQuizData === quizData ? 'quiz' : 'ai-quiz');
 }
 
 function startQuiz() {
@@ -282,8 +296,8 @@ function startQuiz() {
     dom.quizScreen.classList.remove('hidden-view');
     dom.progressContainer.classList.remove('hidden-view');
     dom.scoreTracker.textContent = score;
-    updateNavUI('quiz');
-    if (currentQuestionIndex === 0 && !isAnswered) {
+    updateNavUI(activeQuizData === quizData ? 'quiz' : 'ai-quiz');
+    if (!isAnswered) {
          loadQuestion();
     }
 }
@@ -291,6 +305,7 @@ function startQuiz() {
 function restartQuiz() {
     currentQuestionIndex = 0;
     score = 0;
+    isAnswered = false;
     startQuiz();
 }
 
