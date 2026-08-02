@@ -2,6 +2,7 @@ let currentQuestionIndex = 0;
 let score = 0;
 let isAnswered = false;
 let activeQuizData = quizData; // Dynamically swapped later
+let cachedAiData = null; // Caches generated AI questions
 
 const dom = {
     appContainer: document.getElementById('app-container'),
@@ -37,6 +38,7 @@ const dom = {
     finalFraction: document.getElementById('final-fraction'),
     resultMessage: document.getElementById('result-message'),
     restartBtn: document.getElementById('restart-btn'),
+    generateNewAiBtn: document.getElementById('generate-new-ai-btn'),
     
     progressContainer: document.getElementById('progress-container'),
     progressBar: document.getElementById('progress-bar'),
@@ -55,27 +57,31 @@ dom.tutorialToQuizBtn.addEventListener('click', startQuiz);
 dom.readTutorialBtn.addEventListener('click', showTutorial);
 dom.retakeBtnHeader.addEventListener('click', restartQuiz);
 dom.restartBtn.addEventListener('click', restartQuiz);
+dom.generateNewAiBtn.addEventListener('click', startAIQuizGenerator);
 
 dom.navTutorial.addEventListener('click', showTutorial);
 dom.navAiQuiz.addEventListener('click', () => {
-    if (activeQuizData !== quizData && activeQuizData.length > 0) {
-        startQuiz(); // Resume active AI quiz
+    if (activeQuizData === cachedAiData && cachedAiData !== null) {
+        if (currentQuestionIndex >= activeQuizData.length) showResultsViewOnly();
+        else startQuiz();
+    } else if (cachedAiData !== null) {
+        activeQuizData = cachedAiData;
+        currentQuestionIndex = 0;
+        score = 0;
+        isAnswered = false;
+        startQuiz();
     } else {
         startAIQuizGenerator();
     }
 });
 
 dom.navQuiz.addEventListener('click', () => {
-    if (activeQuizData !== quizData) {
-        // Swapping from AI to Static: reset state to prevent index collision
+    const wasOnAI = (activeQuizData !== quizData);
+    if (wasOnAI) {
         activeQuizData = quizData;
         currentQuestionIndex = 0;
         score = 0;
         isAnswered = false;
-    }
-    
-    if (!dom.quizScreen.classList.contains('hidden-view') || !dom.resultScreen.classList.contains('hidden-view')) {
-        return;
     }
     
     if (currentQuestionIndex >= activeQuizData.length) {
@@ -322,6 +328,11 @@ function showResults() {
     dom.scoreCircleSvg.style.strokeDashoffset = "251.2";
     
     dom.resultMessage.innerHTML = '';
+    if (activeQuizData !== quizData) {
+        dom.generateNewAiBtn.classList.remove('hidden-view');
+    } else {
+        dom.generateNewAiBtn.classList.add('hidden-view');
+    }
     const spanMsg = document.createElement('span');
     spanMsg.className = 'font-bold block mb-2 text-xl';
     
@@ -445,6 +456,7 @@ Required JSON Structure:
 
         // Assign generated questions to the active state
         activeQuizData = aiQuestions;
+        cachedAiData = aiQuestions;
         
         // Reset state
         currentQuestionIndex = 0;
