@@ -488,11 +488,10 @@ async function startAIQuizGenerator() {
         activeQuizData = aiQuestions;
         cachedAiData = aiQuestions;
         
-        currentQuestionIndex = 0;
-        score = 0;
-        
         loadingText.textContent = "Gemini is analyzing the tutorial data and crafting new questions..."; 
-        startQuiz();
+        
+        // Explicitly force a clean state reset (this safely handles isAnswered = false)
+        restartQuiz();
 
     } catch (error) {
         console.error("AI Generation Error:", error);
