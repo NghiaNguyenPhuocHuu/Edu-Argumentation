@@ -380,6 +380,71 @@ function showResults() {
 }
 
 
+async function fetchQuestionChunk(API_KEY, batchIndex, maxRetries = 3) {
+    const promptText = `You are an expert AWS Machine Learning Specialty instructor. 
+Based ONLY on the following tutorial data, generate 5 advanced practice questions.
+This is Batch ${batchIndex} of 4. Focus heavily on different parts of the tutorial to ensure variety.
+Ensure the new questions DO NOT duplicate the existing static questions provided below.
+Keep explanations concise (1-2 sentences max). DO NOT use double quotes inside your text.
+
+Tutorial Data:
+${JSON.stringify(tutorialData)}
+
+Existing Static Questions (DO NOT DUPLICATE THESE):
+${JSON.stringify(quizData)}`;
+
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contents: [{ parts: [{ text: promptText }] }],
+                    generationConfig: {
+                        temperature: 0.7, 
+                        maxOutputTokens: 8192,
+                        responseMimeType: "application/json",
+                        responseSchema: {
+                            type: "ARRAY",
+                            items: {
+                                type: "OBJECT",
+                                properties: {
+                                    question: { type: "STRING" },
+                                    options: { type: "ARRAY", items: { type: "STRING" } },
+                                    correct: { type: "INTEGER" },
+                                    explanations: { type: "ARRAY", items: { type: "STRING" } }
+                                },
+                                required: ["question", "options", "correct", "explanations"]
+                            }
+                        }
+                    }
+                })
+            });
+
+            if (!response.ok) throw new Error(`API request failed with status ${response.status}`);
+
+            const data = await response.json();
+            
+            if (!data.candidates || data.candidates.length === 0) {
+                throw new Error("No candidates returned. Possible safety filter trigger.");
+            }
+            
+            let jsonString = data.candidates[0].content.parts[0].text;
+            if (jsonString.startsWith('```json')) {
+                jsonString = jsonString.replace('```json', '').replace('```', '').trim();
+            }
+            
+            return JSON.parse(jsonString);
+
+        } catch (error) {
+            console.warn(`Batch ${batchIndex} attempt ${attempt} failed: ${error.message}`);
+            if (attempt === maxRetries) throw new Error(`Batch ${batchIndex} failed completely after ${maxRetries} attempts.`);
+            // Wait 2 seconds before retrying to prevent rate limits
+            await new Promise(r => setTimeout(r, 2000));
+        }
+    }
+}
+
 async function startAIQuizGenerator() {
     hideAllScreens();
     scrollToTop();
@@ -394,81 +459,45 @@ async function startAIQuizGenerator() {
         return;
     }
 
-    // --- Pre-flight API Key Status Check ---
     const loadingText = dom.loadingScreen.querySelector('p');
     loadingText.textContent = "Verifying API key status...";
     
     try {
         const checkResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${API_KEY}`);
-        if (!checkResponse.ok) {
-            throw new Error("Invalid API Key or unauthorized access.");
-        }
+        if (!checkResponse.ok) throw new Error("Invalid API Key.");
     } catch (error) {
         console.error("API Key Check Failed:", error);
-        alert("API Key verification failed. Please check your API key in js/config.js and your internet connection.");
-        loadingText.textContent = "Gemini is analyzing the tutorial data and crafting 20 new questions to test your understanding."; // Reset
+        alert("API Key verification failed. Check js/config.js.");
+        loadingText.textContent = "Gemini is analyzing the tutorial data and crafting new questions...";
         showTutorial();
         return;
     }
 
-    // --- Context Expansion ---
-    loadingText.textContent = "API Key verified! Gemini is analyzing tutorials and existing questions to craft 20 new ones...";
-
-    const promptText = `You are an expert AWS Machine Learning Specialty instructor. 
-Based ONLY on the following tutorial data, generate 20 advanced practice questions.
-Ensure the new questions DO NOT duplicate the existing static questions provided below.
-Return ONLY a valid JSON array.
-
-Tutorial Data:
-${JSON.stringify(tutorialData)}
-
-Existing Static Questions (DO NOT DUPLICATE THESE):
-${JSON.stringify(quizData)}
-
-Required JSON Structure:
-[
-  {
-    "question": "Question text...",
-    "options": ["Option A", "Option B", "Option C", "Option D"],
-    "correct": 2, // Integer index (0-3)
-    "explanations": ["Why A is incorrect", "Why B is incorrect", "Why C is correct", "Why D is incorrect"]
-  }
-]`;
-
     try {
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                contents: [{ parts: [{ text: promptText }] }],
-                generationConfig: {
-                    temperature: 0.2,
-                    responseMimeType: "application/json"
-                }
-            })
-        });
+        const results = [];
+        // Process sequentially to prevent free-tier burst limit truncation
+        for (let i = 1; i <= 4; i++) {
+            loadingText.textContent = `API Key verified! Generating batch ${i} of 4 (5 questions each)...`;
+            const chunk = await fetchQuestionChunk(API_KEY, i);
+            results.push(chunk);
+            if (i < 4) await new Promise(r => setTimeout(r, 1000)); // Delay between batches
+        }
 
-        if (!response.ok) throw new Error("API request failed. Check your network.");
+        const aiQuestions = results.flat();
 
-        const data = await response.json();
-        const jsonString = data.candidates[0].content.parts[0].text;
-        const aiQuestions = JSON.parse(jsonString);
-
-        // Assign generated questions to the active state
         activeQuizData = aiQuestions;
         cachedAiData = aiQuestions;
         
-        // Reset state
         currentQuestionIndex = 0;
         score = 0;
         
-        loadingText.textContent = "Gemini is analyzing the tutorial data and crafting 20 new questions to test your understanding."; // Reset for next time
+        loadingText.textContent = "Gemini is analyzing the tutorial data and crafting new questions..."; 
         startQuiz();
 
     } catch (error) {
         console.error("AI Generation Error:", error);
         alert("Failed to generate AI Quiz. Check console for details.");
-        loadingText.textContent = "Gemini is analyzing the tutorial data and crafting 20 new questions to test your understanding."; // Reset for next time
+        loadingText.textContent = "Gemini is analyzing the tutorial data and crafting new questions...";
         showTutorial();
     }
 }
