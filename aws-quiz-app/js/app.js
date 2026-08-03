@@ -380,11 +380,19 @@ function showResults() {
 }
 
 
-async function fetchQuestionChunk(API_KEY, batchIndex, maxRetries = 3) {
+async function fetchQuestionChunk(API_KEY, batchIndex, previousQuestions = [], maxRetries = 3) {
+    let previousContext = "";
+    if (previousQuestions.length > 0) {
+        previousContext = `
+
+Previously Generated Questions (DO NOT duplicate these topics or concepts):
+${JSON.stringify(previousQuestions)}`;
+    }
+
     const promptText = `You are an expert AWS Machine Learning Specialty instructor. 
-Based ONLY on the following tutorial data, generate 5 advanced practice questions.
-This is Batch ${batchIndex} of 4. Focus heavily on different parts of the tutorial to ensure variety.
-Ensure the new questions DO NOT duplicate the existing static questions provided below.
+Based ONLY on the following tutorial data, generate 10 advanced practice questions.
+This is Batch ${batchIndex} of 2. Focus heavily on different parts of the tutorial to ensure variety.
+Ensure the new questions DO NOT duplicate the existing static questions provided below.${previousContext}
 Keep explanations concise (1-2 sentences max). DO NOT use double quotes inside your text.
 
 Tutorial Data:
@@ -439,7 +447,6 @@ ${JSON.stringify(quizData)}`;
         } catch (error) {
             console.warn(`Batch ${batchIndex} attempt ${attempt} failed: ${error.message}`);
             if (attempt === maxRetries) throw new Error(`Batch ${batchIndex} failed completely after ${maxRetries} attempts.`);
-            // Wait 2 seconds before retrying to prevent rate limits
             await new Promise(r => setTimeout(r, 2000));
         }
     }
@@ -474,23 +481,22 @@ async function startAIQuizGenerator() {
     }
 
     try {
-        const results = [];
-        // Process sequentially to prevent free-tier burst limit truncation
-        for (let i = 1; i <= 4; i++) {
-            loadingText.textContent = `API Key verified! Generating batch ${i} of 4 (5 questions each)...`;
-            const chunk = await fetchQuestionChunk(API_KEY, i);
-            results.push(chunk);
-            if (i < 4) await new Promise(r => setTimeout(r, 1000)); // Delay between batches
+        let accumulatedQuestions = [];
+        
+        // Process 2 batches sequentially, passing context forward
+        for (let i = 1; i <= 2; i++) {
+            loadingText.textContent = `API Key verified! Generating batch ${i} of 2 (10 questions each)...`;
+            const chunk = await fetchQuestionChunk(API_KEY, i, accumulatedQuestions);
+            accumulatedQuestions = accumulatedQuestions.concat(chunk);
+            if (i < 2) await new Promise(r => setTimeout(r, 1000)); 
         }
 
-        const aiQuestions = results.flat();
-
-        activeQuizData = aiQuestions;
-        cachedAiData = aiQuestions;
+        activeQuizData = accumulatedQuestions;
+        cachedAiData = accumulatedQuestions;
         
         loadingText.textContent = "Gemini is analyzing the tutorial data and crafting new questions..."; 
         
-        // Explicitly force a clean state reset (this safely handles isAnswered = false)
+        // Explicitly force a clean state reset natively
         restartQuiz();
 
     } catch (error) {
