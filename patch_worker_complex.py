@@ -1,7 +1,11 @@
-async function fetchQuestionChunk(API_KEY, tutorialData, previousQuestions = [], maxRetries = 3) {
+import os
+
+file_path = os.path.join("aws-quiz-app", "js", "ai-worker.js")
+
+worker_code = """async function fetchQuestionChunk(API_KEY, tutorialData, previousQuestions = [], maxRetries = 3) {
     let previousContext = "";
     if (previousQuestions.length > 0) {
-        previousContext = `\nExisting Static Questions (DO NOT duplicate these concepts):\n${JSON.stringify(previousQuestions)}`;
+        previousContext = `\\nExisting Static Questions (DO NOT duplicate these concepts):\\n${JSON.stringify(previousQuestions)}`;
     }
 
     const promptText = `You are an expert AWS Machine Learning Specialty exam architect.
@@ -55,7 +59,7 @@ ${JSON.stringify(tutorialData)}`;
             
             let jsonString = data.candidates[0].content.parts[0].text;
             if (jsonString.startsWith('```json')) {
-                jsonString = jsonString.replace(/^```json\n?/, '').replace(/```$/, '').trim();
+                jsonString = jsonString.replace(/^```json\\n?/, '').replace(/```$/, '').trim();
             }
             
             return JSON.parse(jsonString);
@@ -79,3 +83,12 @@ self.onmessage = async function(e) {
         self.postMessage({ type: 'error', message: error.message });
     }
 };
+"""
+
+def write_worker():
+    with open(file_path, "w", encoding="utf-8") as f:
+        f.write(worker_code)
+    print(f"Success: Rewrote {file_path} for 20 complex scenario-based questions.")
+
+if __name__ == "__main__":
+    write_worker()

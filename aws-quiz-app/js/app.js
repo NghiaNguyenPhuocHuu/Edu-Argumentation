@@ -380,83 +380,7 @@ function showResults() {
 }
 
 
-async function fetchQuestionChunk(API_KEY, batchIndex, previousQuestions = [], maxRetries = 5) {
-    let previousContext = "";
-    if (previousQuestions.length > 0) {
-        previousContext = `
 
-Previously Generated Questions (DO NOT duplicate these topics or concepts):
-${JSON.stringify(previousQuestions)}`;
-    }
-
-    const promptText = `You are an expert AWS Machine Learning Specialty instructor. 
-Based ONLY on the following tutorial data, generate 10 advanced practice questions.
-This is Batch ${batchIndex} of 2. Focus heavily on different parts of the tutorial to ensure variety.
-Ensure the new questions DO NOT duplicate the existing static questions provided below.${previousContext}
-Keep explanations concise (1-2 sentences max). DO NOT use double quotes inside your text.
-
-Tutorial Data:
-${JSON.stringify(tutorialData)}
-
-Existing Static Questions (DO NOT DUPLICATE THESE):
-${JSON.stringify(quizData)}`;
-
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
-        try {
-            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    contents: [{ parts: [{ text: promptText }] }],
-                safetySettings: [
-                    { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
-                    { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
-                    { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" },
-                    { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" }
-                ],
-                    generationConfig: {
-                        temperature: 0.7, 
-                        maxOutputTokens: 8192,
-                        responseMimeType: "application/json",
-                        responseSchema: {
-                            type: "ARRAY",
-                            items: {
-                                type: "OBJECT",
-                                properties: {
-                                    question: { type: "STRING" },
-                                    options: { type: "ARRAY", items: { type: "STRING" } },
-                                    correct: { type: "INTEGER" },
-                                    explanations: { type: "ARRAY", items: { type: "STRING" } }
-                                },
-                                required: ["question", "options", "correct", "explanations"]
-                            }
-                        }
-                    }
-                })
-            });
-
-            if (!response.ok) throw new Error(`API request failed with status ${response.status}`);
-
-            const data = await response.json();
-            
-            if (!data.candidates || data.candidates.length === 0) {
-                throw new Error("No candidates returned. Possible safety filter trigger.");
-            }
-            
-            let jsonString = data.candidates[0].content.parts[0].text;
-            if (jsonString.startsWith('```json')) {
-                jsonString = jsonString.replace('```json', '').replace('```', '').trim();
-            }
-            
-            return JSON.parse(jsonString);
-
-        } catch (error) {
-            console.warn(`Batch ${batchIndex} attempt ${attempt} failed: ${error.message}`);
-            if (attempt === maxRetries) throw new Error(`Batch ${batchIndex} failed completely after ${maxRetries} attempts.`);
-            await new Promise(r => setTimeout(r, 2000));
-        }
-    }
-}
 
 async function startAIQuizGenerator() {
     hideAllScreens();
@@ -490,20 +414,31 @@ async function startAIQuizGenerator() {
         let accumulatedQuestions = [];
         
         // Process 2 batches sequentially, passing context forward
-        for (let i = 1; i <= 2; i++) {
-            loadingText.textContent = `API Key verified! Generating batch ${i} of 2 (10 questions each)...`;
-            const chunk = await fetchQuestionChunk(API_KEY, i, accumulatedQuestions);
-            accumulatedQuestions = accumulatedQuestions.concat(chunk);
-            if (i < 2) await new Promise(r => setTimeout(r, 1000)); 
-        }
+        loadingText.textContent = "Starting AI background worker..."; 
 
-        activeQuizData = accumulatedQuestions;
-        cachedAiData = accumulatedQuestions;
-        
-        loadingText.textContent = "Gemini is analyzing the tutorial data and crafting new questions..."; 
-        
-        // Explicitly force a clean state reset natively
-        restartQuiz();
+    // 1. Initialize the worker
+    const aiWorker = new Worker('js/ai-worker.js');
+
+    // 2. Send the required context to the background thread
+    aiWorker.postMessage({ 
+        apiKey: API_KEY, 
+        tutorialData: typeof tutorialData !== 'undefined' ? tutorialData : null, 
+        quizData: accumulatedQuestions 
+    });
+
+    // 3. Set up the listener to handle messages back from the worker
+    aiWorker.onmessage = function(e) {
+        if (e.data.type === 'progress') {
+            loadingText.textContent = e.data.message;
+        } else if (e.data.type === 'success') {
+            activeQuizData = e.data.data;
+            cachedAiData = e.data.data;
+            loadingText.textContent = "Questions generated successfully!";
+            restartQuiz();
+        } else if (e.data.type === 'error') {
+            loadingText.textContent = "Error: " + e.data.message;
+        }
+    };
 
     } catch (error) {
         console.error("AI Generation Error:", error);
