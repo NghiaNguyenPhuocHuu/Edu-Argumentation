@@ -6,14 +6,14 @@ The **Edu-Argumentation / AWS Quiz App** is a lightweight, client-side web appli
 
 * **Static Data Layer (`/data/courseData.json` & `testModule.json`)**: Contains structured course modules, questions, options, and explanations.
 * **Front-End Interface (`index.html` & `js/app.js`)**: Built utilizing pure JavaScript, HTML5, and CSS without heavy framework overhead (avoiding React, opting for clean DOM management).
-* **AI Worker / Integration (`js/ai-worker.js` & `test_gemini.js`)**: Offloads background processing or handles dynamic AI-assisted query evaluation/explanations using background worker threads or direct client-side service scripts.
+* **AI Worker / Integration (`js/ai-worker.js` & `test_gemini.js`)**: Offloads background processing or handles dynamic generation of similar but different questions based on the context of the tutorial and static practice.
 
 ### How It Works
 
 1. **Initialization**: The main application (`app.js`) loads and parses the static JSON course data (`courseData.json`) upon startup.
 2. **State Management**: It tracks user quiz progress, selected answers, scores, and active module states entirely within the browser's session/local state.
 3. **Interactive Evaluation**: When a user selects an answer, the app immediately validates it against the schema, updates the UI score counters, and pulls contextual explanations.
-4. **AI Assistance**: Background workers or test modules interface asynchronously to generate real-time feedback or hints where applicable.
+4. **AI Assistance**: Background workers or test modules interface asynchronously to generate similar but different questions based on the context of the tutorial and static practice.
 
 ---
 
@@ -50,4 +50,4 @@ python3 -m http.server 8000
 * **State Persistence**: Implement `localStorage` or `IndexedDB` caching so users can resume quizzes where they left off if the browser accidentally closes.
 * **Modular Web Components**: Refactor UI elements into native Web Components with Shadow DOM for cleaner encapsulation and modular styling.
 * **Enhanced Error Handling & Validation**: Add schema validation (using JSON Schema) for incoming course data to gracefully handle malformed JSON inputs.
-* **Dynamic AI Prompt Tuning**: Upgrade the `ai-worker.js` implementation to support customizable system instructions and token management for richer hint generation.
+* **Dynamic AI Prompt Tuning**: Upgrade the `ai-worker.js` implementation to support customizable system instructions for generating tailored practice questions.
