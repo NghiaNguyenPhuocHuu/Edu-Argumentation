@@ -352,13 +352,40 @@ function renderTutorial() {
     });
 }
 
+
+function formatText(text) {
+    if (!text) return '';
+    // Unconditionally break lines before list numbers like "1. ", "2. "
+    let formatted = text.replace(/\s+(\d+\.\s)/g, '<br><br>$1');
+    formatted = formatted.replace(/\n/g, '<br>');
+    return formatted;
+}
+
+
+function formatText(text) {
+    if (!text) return '';
+    // Unconditionally break lines before list numbers like "1. ", "2. "
+    let formatted = text.replace(/\s+(\d+\.\s)/g, '<br><br>$1');
+    formatted = formatted.replace(/\n/g, '<br>');
+    return formatted;
+}
+
+
+function formatText(text) {
+    if (!text) return '';
+    // Unconditionally break lines before list numbers like "1. ", "2. "
+    let formatted = text.replace(/\s+(\d+\.\s)/g, '<br><br>$1');
+    formatted = formatted.replace(/\n/g, '<br>');
+    return formatted;
+}
+
 function loadQuestion() {
     isAnswered = false;
     window.scrollTo({ top: 0, behavior: 'smooth' });
     const currentQ = activeQuizData[currentQuestionIndex];
     
     dom.questionNumberBadge.textContent = currentQuestionIndex + 1;
-    dom.questionText.textContent = currentQ.question;
+    dom.questionText.innerHTML = formatText(currentQ.question);
     
     if (currentQuestionIndex === activeQuizData.length - 1) {
         dom.nextBtnText.textContent = "Finish Assessment";
@@ -414,7 +441,7 @@ function handleAnswerSelect(selectedIndex, selectedBtn) {
         titleSpan.className = 'block mb-1 font-bold tracking-wider text-xs uppercase';
         const explSpan = document.createElement('span');
         explSpan.className = 'text-gray-400 leading-relaxed';
-        explSpan.textContent = currentQ.explanations[index];
+        explSpan.innerHTML = formatText(currentQ.explanations[index]);
         
         if (isOptionCorrect) {
             titleSpan.textContent = 'Correct Answer';

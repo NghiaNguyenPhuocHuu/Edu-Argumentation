@@ -16,6 +16,8 @@ COMPLEXITY RULES:
 
 CRITICAL FORMAT RULE: You MUST provide exactly 4 options and exactly 4 explanations for EACH of the 20 questions. The explanations array must map exactly to the options array. Do not leave any explanations blank.
 
+5. LIST FORMATTING STRICT RULE: If a question or explanation contains a list of steps, items, or processes, you MUST format it sequentially using numbers followed by a period and a space (e.g., "1. ", "2. ", "3. "). ABSOLUTELY DO NOT use markdown bullets (- or *) or unnumbered lists.
+
 Tutorial Data:
 ${JSON.stringify(tutorialData)}`;
 

@@ -1,0 +1,35 @@
+{
+    "tutorialData": {
+        "title": "AWS Orchestration Overview",
+        "lead": "Understanding how to orchestrate ML workflows.",
+        "sections": [
+            {
+                "title": "AWS Step Functions",
+                "themeColor": "emerald-500",
+                "note": "Serverless orchestration.",
+                "items": [
+                    "Type: Visual workflow service.",
+                    "Common Use Cases: Orchestrating SageMaker pipelines, conditional logic, and lambda execution."
+                ]
+            }
+        ]
+    },
+    "quizData": [
+        {
+            "question": "An MLOps team is designing an automated workflow for model retraining and deployment. The workflow involves: 1. Running a SageMaker Processing Job to prepare data. 2. Executing a SageMaker Training Job. 3. Invoking a SageMaker Batch Transform job for offline evaluation. 4. Based on the evaluation results (which determine if the new model is better), either registering the new model in the Model Registry or skipping registration. They need a serverless orchestration service that can handle conditional logic and directly integrate with SageMaker services. Which AWS service is best suited to define and manage this complex, branching MLOps workflow?",
+            "options": [
+                "AWS Glue",
+                "AWS Step Functions",
+                "AWS CodePipeline",
+                "Amazon EventBridge"
+            ],
+            "correct": 1,
+            "explanations": [
+                "Incorrect. Glue is an ETL service, not a general workflow orchestrator.",
+                "Correct! Step Functions is ideal for complex, branching logic. It natively integrates with SageMaker to execute tasks like: 1. Processing jobs. 2. Training jobs. 3. Condition evaluations.",
+                "Incorrect. CodePipeline is for CI/CD, but lacks native conditional branching based on ML evaluation outputs.",
+                "Incorrect. EventBridge is an event bus, not a state machine for orchestrating multi-step conditional workflows."
+            ]
+        }
+    ]
+}
