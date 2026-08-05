@@ -142,8 +142,10 @@ function startQuiz() {
     dom.scoreTracker.textContent = score;
     updateNavUI(activeQuizData === quizData ? 'quiz' : 'ai-quiz');
     
-    if (!isAnswered) {
+    if (!isAnswered && activeQuizData.length > 0) {
         loadQuestion();
+    } else if (activeQuizData.length === 0) {
+        showResults();
     }
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
@@ -158,7 +160,7 @@ function showResults() {
     dom.progressContainer.classList.add('hidden-view');
 
     const totalQuestions = activeQuizData.length;
-    const percent = Math.round((score / totalQuestions) * 100);
+    const percent = totalQuestions === 0 ? 0 : Math.round((score / totalQuestions) * 100);
     
     dom.finalFraction.textContent = `${score} / ${totalQuestions}`;
     
@@ -172,7 +174,11 @@ function showResults() {
     const spanMsg = document.createElement('span');
     spanMsg.className = 'font-light block mb-4 text-3xl text-white';
     
-    if (percent >= 80) {
+    if (totalQuestions === 0) {
+        spanMsg.textContent = 'No Assessment Available.';
+        spanMsg.classList.add('text-gray-400');
+        dom.resultMessage.appendChild(spanMsg);
+    } else if (percent >= 80) {
         spanMsg.textContent = 'Outstanding Performance!';
         spanMsg.classList.add('text-emerald-400');
         dom.resultMessage.appendChild(spanMsg);
@@ -227,8 +233,6 @@ dom.navTutorial.addEventListener('click', showLandingDashboard);
 
 dom.startBtn.addEventListener('click', () => { activeQuizData = quizData; startQuiz(); });
 dom.readTutorialBtn.addEventListener('click', showTutorial);
-
-// BUG FIX: Set active data before calling startQuiz
 dom.tutorialToQuizBtn.addEventListener('click', () => { activeQuizData = quizData; startQuiz(); });
 
 dom.nextBtn.addEventListener('click', () => {
@@ -239,7 +243,6 @@ dom.nextBtn.addEventListener('click', () => {
         showResults();
     }
 });
-
 
 dom.retakeBtnHeader.addEventListener('click', restartQuiz);
 dom.restartBtn.addEventListener('click', restartQuiz);
@@ -323,7 +326,10 @@ function renderTutorial() {
         const noteEl = sectionClone.querySelector('.section-note');
         const listContainer = sectionClone.querySelector('.section-list');
 
+        const theme = section.themeColor || 'indigo-500';
+
         titleEl.textContent = section.title;
+        titleEl.className = `section-title text-2xl font-bold mb-4 border-b-2 pb-2 text-${theme} border-${theme}`;
 
         if (section.note) {
             noteEl.textContent = section.note;
@@ -331,20 +337,104 @@ function renderTutorial() {
             noteEl.remove();
         }
 
-        section.items.forEach(itemText => {
+        section.items.forEach(itemData => {
             const liClone = templates.tutorialListItem.content.cloneNode(true);
             const spanEl = liClone.querySelector('span');
             
-            const parts = itemText.split(':');
-            if (parts.length > 1) {
-                const strong = document.createElement('strong');
-                strong.className = 'font-semibold text-gray-200';
-                strong.textContent = parts[0] + ':';
-                spanEl.appendChild(strong);
-                spanEl.appendChild(document.createTextNode(parts.slice(1).join(':')));
-            } else {
-                spanEl.textContent = itemText;
+            if (typeof itemData === 'string') {
+                const parts = itemData.split(':');
+                if (parts.length > 1) {
+                    const strong = document.createElement('strong');
+                    strong.className = `font-semibold text-${theme}`;
+                    strong.textContent = parts[0] + ':';
+                    spanEl.appendChild(strong);
+                    spanEl.appendChild(document.createTextNode(parts.slice(1).join(':')));
+                } else {
+                    spanEl.textContent = itemData;
+                }
+            } 
+            else if (typeof itemData === 'object' && itemData !== null) {
+                if (itemData.term) {
+                    const strong = document.createElement('strong');
+                    strong.className = `font-semibold text-${theme} block mb-4 mt-2 text-lg md:text-xl tracking-wide`;
+                    strong.textContent = itemData.term;
+                    spanEl.appendChild(strong);
+                }
+
+                if (itemData.blocks && Array.isArray(itemData.blocks)) {
+                    itemData.blocks.forEach(block => {
+                        if (block.type === 'text') {
+                            const p = document.createElement('p');
+                            p.className = 'mb-6 text-gray-200 leading-relaxed';
+                            p.textContent = block.content;
+                            spanEl.appendChild(p);
+                        } else if (block.type === 'media' && block.mediaType === 'image') {
+                            const img = document.createElement('img');
+                            img.src = `data/${block.src}`;
+                            img.alt = block.alt || '';
+                            img.className = 'my-6 max-w-full rounded-xl shadow-lg';
+                            spanEl.appendChild(img);
+                        } else if (block.type === 'card') {
+                            const cardDiv = document.createElement('div');
+                            
+                            // Visual separation logic based on variant
+                            if (block.variant === 'example') {
+                                cardDiv.className = `my-6 p-7 rounded-2xl bg-slate-900 border-l-8 border-${theme} shadow-xl relative overflow-hidden`;
+                            } else {
+                                cardDiv.className = `my-6 p-6 rounded-xl bg-gray-800/40 border-l-4 border-${theme} shadow-md`;
+                            }
+                            
+                            if (block.title) {
+                                const cardTitle = document.createElement('h4');
+                                const titleFont = block.variant === 'example' ? 'font-extrabold text-2xl tracking-tight' : 'font-bold text-lg';
+                                cardTitle.className = `text-white mb-4 ${titleFont}`;
+                                cardTitle.textContent = block.title;
+                                cardDiv.appendChild(cardTitle);
+                            }
+                            if (block.intro || block.content) {
+                                const p = document.createElement('p');
+                                const textBrightness = block.variant === 'example' ? 'text-gray-100' : 'text-gray-300';
+                                p.className = `${textBrightness} mb-4 leading-relaxed text-lg`;
+                                p.textContent = block.intro || block.content;
+                                cardDiv.appendChild(p);
+                            }
+                            if (block.bullets && Array.isArray(block.bullets)) {
+                                const ul = document.createElement('ul');
+                                ul.className = 'list-disc list-outside text-gray-300 ml-6 space-y-3 leading-relaxed text-lg';
+                                block.bullets.forEach(bullet => {
+                                    const li = document.createElement('li');
+                                    li.textContent = bullet;
+                                    ul.appendChild(li);
+                                });
+                                cardDiv.appendChild(ul);
+                            }
+                            spanEl.appendChild(cardDiv);
+                        } else if (block.type === 'callout') {
+                            const calloutDiv = document.createElement('div');
+                            calloutDiv.className = 'my-6 p-6 rounded-xl bg-amber-900/20 border border-amber-500/30 shadow-md';
+                            
+                            if (block.title) {
+                                const calloutTitle = document.createElement('h4');
+                                calloutTitle.className = 'font-bold text-amber-500 mb-4 flex items-center gap-2 text-lg';
+                                calloutTitle.innerHTML = `<span>⚠️</span> ${block.title}`;
+                                calloutDiv.appendChild(calloutTitle);
+                            }
+                            if (block.items && Array.isArray(block.items)) {
+                                const ul = document.createElement('ul');
+                                ul.className = 'space-y-4 text-gray-200 leading-relaxed';
+                                block.items.forEach(item => {
+                                    const li = document.createElement('li');
+                                    li.innerHTML = item.replace(/\*\*(.*?)\*\*/g, '<strong class="text-white font-semibold">$1</strong>');
+                                    ul.appendChild(li);
+                                });
+                                calloutDiv.appendChild(ul);
+                            }
+                            spanEl.appendChild(calloutDiv);
+                        }
+                    });
+                }
             }
+            
             listContainer.appendChild(liClone);
         });
 
@@ -352,28 +442,8 @@ function renderTutorial() {
     });
 }
 
-
 function formatText(text) {
     if (!text) return '';
-    // Unconditionally break lines before list numbers like "1. ", "2. "
-    let formatted = text.replace(/\s+(\d+\.\s)/g, '<br><br>$1');
-    formatted = formatted.replace(/\n/g, '<br>');
-    return formatted;
-}
-
-
-function formatText(text) {
-    if (!text) return '';
-    // Unconditionally break lines before list numbers like "1. ", "2. "
-    let formatted = text.replace(/\s+(\d+\.\s)/g, '<br><br>$1');
-    formatted = formatted.replace(/\n/g, '<br>');
-    return formatted;
-}
-
-
-function formatText(text) {
-    if (!text) return '';
-    // Unconditionally break lines before list numbers like "1. ", "2. "
     let formatted = text.replace(/\s+(\d+\.\s)/g, '<br><br>$1');
     formatted = formatted.replace(/\n/g, '<br>');
     return formatted;

@@ -1,0 +1,348 @@
+{
+    "tutorialData": {
+        "title": "SageMaker Clarify Bias Mastery",
+        "lead": "Master Data and Model Bias Metrics with Interactive Lessons and Quizzes",
+        "sections": [
+            {
+                "title": "1. Pre-Training Bias Metrics (Data Bias)",
+                "note": "These metrics analyze your dataset before you train any model to see if historical data is skewed or unfair.",
+                "themeColor": "indigo-500",
+                "items": [
+                    "DPL (Difference in Proportions of Labels): Measures if historical positive outcomes are disproportionately distributed between groups. Intuitive Example: Imagine your bank is looking at 10 years of past loan data to train a new model. Middle-aged adults: Historically, 1,000 applied, and 800 were approved (80% approval rate). Young adults: Historically, 100 applied, and only 20 were approved (20% approval rate). Calculation: 80% - 20% = 60% (or 0.6). Because the difference is far from zero, DPL flags a massive bias in your historical labels.",
+                    "CI (Class Imbalance): Measures if there are significantly more records for one demographic group than another in the dataset, evaluating sheer volume of representation rather than outcomes. Intuitive Example: Looking at total applications where middle-aged adults have 1,000 total records and young adults have only 100 total records."
+                ]
+            },
+            {
+                "title": "2. Post-Training Bias Metrics (Model Bias)",
+                "note": "These metrics analyze the predictions your model makes after it has been trained to evaluate behavioral fairness.",
+                "themeColor": "emerald-500",
+                "items": [
+                    "DI (Disparate Impact): The ratio of the positive prediction rate for the underprivileged group compared to the privileged group. Intuitive Example: Feeding 100 brand new applications from middle-aged adults and 100 from young adults into the model, where the model predicts 90 middle-aged adults should be approved (90% rate) and 45 young adults should be approved (45% rate). Calculation: 45% / 90% = 0.5. A ratio below 0.8 typically signals adverse impact.",
+                    "TE (Treatment Equality): Looks at the ratio of False Positives (FP) to False Negatives (FN) between demographic groups, measuring whether error types disproportionately punish one group over another. Intuitive Example: For middle-aged adults, out of 10 mistakes, 8 were False Positives and 2 were False Negatives (Ratio FN/FP = 2/8 = 0.25). For young adults, out of 10 mistakes, 2 were False Positives and 8 were False Negatives (Ratio FN/FP = 8/2 = 4.0). Calculation: 4.0 - 0.25 = 3.75."
+                ]
+            }
+        ]
+    },
+    "quizData": [
+        {
+            "question": "A data scientist is auditing a dataset of 50,000 resumes. They notice that 90% of the records belong to applicants from a specific geographic region, while only 10% represent the rest of the world. Which metric should they prioritize to identify this specific representation issue?",
+            "options": [
+                "Class Imbalance (CI)",
+                "Treatment Equality (TE)",
+                "Difference in Proportions of Labels (DPL)",
+                "Disparate Impact (DI)"
+            ],
+            "correct": 0,
+            "explanations": [
+                "Correct! CI measures representation gaps in the dataset's record counts, exactly what is described here (90% vs 10%).",
+                "Incorrect. TE is a post-training metric measuring errors (FP/FN), not dataset representation.",
+                "Incorrect. DPL measures differences in success outcomes (labels), not simply how many records exist for each group.",
+                "Incorrect. DI is a post-training metric measuring prediction approval rates, not dataset representation."
+            ]
+        },
+        {
+            "question": "While reviewing historical loan data, a bank finds that the 'Disadvantaged' group was approved 15% of the time, while the 'Advantaged' group was approved 75% of the time. Which metric would specifically quantify this difference in historical success rates?",
+            "options": [
+                "Difference in Proportions of Labels (DPL)",
+                "Disparate Impact (DI)",
+                "Treatment Equality (TE)",
+                "Class Imbalance (CI)"
+            ],
+            "correct": 0,
+            "explanations": [
+                "Correct! DPL specifically calculates the difference in historical positive outcomes (labels) between groups (75% - 15%).",
+                "Incorrect. DI calculates the ratio of model predictions, whereas DPL looks at historical data.",
+                "Incorrect. TE compares false positives to false negatives, which is unrelated to historical approval rates.",
+                "Incorrect. CI looks at record count representation, not approval rates."
+            ]
+        },
+        {
+            "question": "In a healthcare AI system, a model mistakenly predicts that several healthy patients from Group A need surgery (False Positive), but mistakenly predicts that several sick patients from Group B are healthy (False Negative). Which metric would highlight this unfair distribution of error types?",
+            "options": [
+                "Treatment Equality (TE)",
+                "Disparate Impact (DI)",
+                "Difference in Proportions of Labels (DPL)",
+                "Class Imbalance (CI)"
+            ],
+            "correct": 0,
+            "explanations": [
+                "Correct! TE specifically measures the ratio of False Positives to False Negatives between different demographic groups.",
+                "Incorrect. DI looks at overall positive prediction rates, not specific error types (FP/FN).",
+                "Incorrect. DPL is a pre-training metric about historical data, not model errors.",
+                "Incorrect. CI only measures the volume of data records for each group."
+            ]
+        },
+        {
+            "question": "A recruitment model is evaluated, and it is found that it predicts a 'Hire' recommendation for 40% of male applicants and 10% of female applicants. What is the Disparate Impact (DI) value for this model?",
+            "options": [
+                "0.25",
+                "0.30",
+                "4.00",
+                "0.40"
+            ],
+            "correct": 0,
+            "explanations": [
+                "Correct! DI is the ratio of the underprivileged group rate to the privileged group rate (10% / 40% = 0.25).",
+                "Incorrect. This is the difference (40% - 10%), which would be used for DPL, not DI.",
+                "Incorrect. This divides the privileged group by the underprivileged group (40% / 10%).",
+                "Incorrect. This is just the prediction rate for the privileged group."
+            ]
+        },
+        {
+            "question": "A legal team requires a metric to ensure that a housing algorithm is not violating the 'four-fifths rule' for fair housing. Which SageMaker Clarify metric is most appropriate for this regulatory compliance check?",
+            "options": [
+                "Disparate Impact (DI)",
+                "Difference in Proportions of Labels (DPL)",
+                "Treatment Equality (TE)",
+                "Class Imbalance (CI)"
+            ],
+            "correct": 0,
+            "explanations": [
+                "Correct! DI is the industry standard for the 'four-fifths rule' (a DI below 0.8 usually signals adverse impact).",
+                "Incorrect. Regulators focus heavily on the model's current disparate impact (DI), not just historical data (DPL).",
+                "Incorrect. TE deals with error types (FP vs FN), not the overall selection rates required by the 4/5ths rule.",
+                "Incorrect. CI deals with dataset composition, not selection rates."
+            ]
+        },
+        {
+            "question": "When is the most effective time to calculate Class Imbalance (CI)?",
+            "options": [
+                "During exploratory data analysis (EDA)",
+                "During model deployment",
+                "After hyperparameter tuning",
+                "While analyzing false positives"
+            ],
+            "correct": 0,
+            "explanations": [
+                "Correct! CI is a pre-training metric; it should be calculated during EDA to ensure adequate representation before training begins.",
+                "Incorrect. This is too late. CI is a property of the training data.",
+                "Incorrect. CI should be evaluated before any model training or tuning starts.",
+                "Incorrect. False positives are post-training; CI is pre-training."
+            ]
+        },
+        {
+            "question": "If a recidivism prediction model has a Treatment Equality (TE) value significantly higher than zero, what does this likely imply for the underprivileged group?",
+            "options": [
+                "They experience a skewed ratio of False Positives to False Negatives",
+                "They are approved at a much lower rate",
+                "They are underrepresented in the dataset",
+                "Their historical success rate was lower"
+            ],
+            "correct": 0,
+            "explanations": [
+                "Correct! A TE far from zero means the types of errors (punishing vs. lenient) are unbalanced between groups.",
+                "Incorrect. This describes Disparate Impact (DI), not Treatment Equality.",
+                "Incorrect. This describes Class Imbalance (CI).",
+                "Incorrect. This describes DPL."
+            ]
+        },
+        {
+            "question": "Which of the following is considered a 'Pre-Training' bias metric in SageMaker Clarify?",
+            "options": [
+                "Difference in Proportions of Labels (DPL)",
+                "Disparate Impact (DI)",
+                "Treatment Equality (TE)",
+                "Recall Score"
+            ],
+            "correct": 0,
+            "explanations": [
+                "Correct! DPL and CI are calculated on the dataset before training.",
+                "Incorrect. DI requires model predictions, making it a post-training metric.",
+                "Incorrect. TE requires model errors (predictions vs ground truth), making it a post-training metric.",
+                "Incorrect. Recall evaluates a trained model's performance."
+            ]
+        },
+        {
+            "question": "An insurance company evaluates its new premium pricing model. The model predicts a 'Low Risk' category for 60% of applicants in the privileged group and 15% of applicants in the underprivileged group. What is the Disparate Impact (DI) value?",
+            "options": [
+                "0.25",
+                "0.45",
+                "4.00",
+                "0.15"
+            ],
+            "correct": 0,
+            "explanations": [
+                "Correct! DI = Rate(underprivileged) / Rate(privileged) = 15% / 60% = 0.25.",
+                "Incorrect. This is the difference (60% - 15%), not the ratio.",
+                "Incorrect. This is the inverse ratio (60% / 15%).",
+                "Incorrect. This is just the underprivileged rate."
+            ]
+        },
+        {
+            "question": "A data scientist identifies a high Difference in Proportions of Labels (DPL) in a training dataset. What does this specifically indicate about the data?",
+            "options": [
+                "Historical outcomes favor one group",
+                "The model is currently making biased predictions",
+                "One group is underrepresented in record count",
+                "The model is overfitting to the majority facet"
+            ],
+            "correct": 0,
+            "explanations": [
+                "Correct! DPL measures the gap in positive labels (historical successes) between groups.",
+                "Incorrect. DPL is evaluated on historical data, before a model makes predictions.",
+                "Incorrect. This describes Class Imbalance (CI).",
+                "Incorrect. Overfitting is a model behavior, not a property of the data labels."
+            ]
+        },
+        {
+            "question": "If a facial recognition model has a Class Imbalance (CI) value of 0.8, what is the most likely risk during model training?",
+            "options": [
+                "Poor generalization for the minority",
+                "The model will favor historical bias",
+                "Predictions will be too slow",
+                "The model will achieve perfect Treatment Equality"
+            ],
+            "correct": 0,
+            "explanations": [
+                "Correct! High CI means the minority group lacks enough examples for the model to learn their patterns effectively.",
+                "Incorrect. This is a risk of high DPL (label bias), not necessarily CI (volume bias).",
+                "Incorrect. CI impacts accuracy and fairness, not inference speed.",
+                "Incorrect. Imbalance usually ruins equality, rather than perfecting it."
+            ]
+        },
+        {
+            "question": "A lending model has a Treatment Equality (TE) value of 0.0. What does this imply about the model's errors?",
+            "options": [
+                "Ratio of error types is balanced",
+                "Approval rates are exactly identical",
+                "The model has 100% accuracy",
+                "There are no False Positives"
+            ],
+            "correct": 0,
+            "explanations": [
+                "Correct! A TE of 0 means the ratio of False Positives to False Negatives is the same across groups.",
+                "Incorrect. This would mean DI is 1.0. TE specifically looks at errors, not general approvals.",
+                "Incorrect. TE measures the balance of errors, not the absence of them.",
+                "Incorrect. FPs can exist, they are just proportionally distributed."
+            ]
+        },
+        {
+            "question": "Which SageMaker Clarify metric is most useful for a legal audit aimed at detecting 'Adverse Impact' in automated hiring?",
+            "options": [
+                "Disparate Impact (DI)",
+                "Difference in Proportions of Labels (DPL)",
+                "Class Imbalance (CI)",
+                "Treatment Equality (TE)"
+            ],
+            "correct": 0,
+            "explanations": [
+                "Correct! DI is the standard mathematical translation of 'Adverse Impact' (comparing selection rates).",
+                "Incorrect. Regulators audit the model's current decisions (DI), not just its historical training data (DPL).",
+                "Incorrect. CI checks database proportions, not hiring rates.",
+                "Incorrect. TE is used for fine-grained error analysis, rarely for high-level legal 'Adverse Impact' screening."
+            ]
+        },
+        {
+            "question": "You calculate a DPL of 0.05 and a DI of 0.45. What is the most accurate interpretation of this situation?",
+            "options": [
+                "The model amplified existing bias",
+                "Treatment equality is likely achieved",
+                "The model reduced data bias",
+                "The dataset is too small"
+            ],
+            "correct": 0,
+            "explanations": [
+                "Correct! The training data was relatively fair (DPL 0.05), but the model predictions are highly biased (DI 0.45, far from 1.0).",
+                "Incorrect. These metrics do not measure Treatment Equality.",
+                "Incorrect. If it reduced bias, DI would be closer to 1.0 than the historical rate suggested.",
+                "Incorrect. These metrics measure proportions, not absolute size."
+            ]
+        },
+        {
+            "question": "In the context of a medical diagnosis model, a 'False Negative' (missing a disease) is far more dangerous than a 'False Positive' (unnecessary test). Which metric ensures this danger isn't localized to one group?",
+            "options": [
+                "Treatment Equality (TE)",
+                "Class Imbalance (CI)",
+                "Disparate Impact (DI)",
+                "Difference in Proportions of Labels (DPL)"
+            ],
+            "correct": 0,
+            "explanations": [
+                "Correct! TE ensures the ratio of dangerous errors (FN) to harmless errors (FP) is equally distributed across groups.",
+                "Incorrect. CI does not analyze error types.",
+                "Incorrect. DI looks at overall positive rates, masking the critical difference between a True Positive and a False Positive.",
+                "Incorrect. DPL analyzes past data, not current dangerous prediction errors."
+            ]
+        },
+        {
+            "question": "Which scenario would result in a Disparate Impact (DI) value greater than 1.0?",
+            "options": [
+                "Underprivileged group has a higher success rate",
+                "Privileged group has a higher success rate",
+                "Both groups have equal success rates",
+                "The model makes no errors"
+            ],
+            "correct": 0,
+            "explanations": [
+                "Correct! DI = Underprivileged / Privileged. If the numerator is higher, the result is greater than 1.0.",
+                "Incorrect. This results in a DI less than 1.0.",
+                "Incorrect. This results in a DI exactly equal to 1.0.",
+                "Incorrect. DI is about selection rates, not absolute accuracy."
+            ]
+        },
+        {
+            "question": "What is a common mitigation strategy if a data scientist finds a high Class Imbalance (CI) value during EDA?",
+            "options": [
+                "Oversampling the minority group",
+                "Removing the privileged group",
+                "Using a more complex algorithm",
+                "Only collecting historical data"
+            ],
+            "correct": 0,
+            "explanations": [
+                "Correct! Oversampling (e.g., SMOTE) creates synthetic examples to balance the record counts.",
+                "Incorrect. Deleting valuable data degrades overall model performance.",
+                "Incorrect. Complex algorithms will simply memorize the imbalance faster.",
+                "Incorrect. Historical data is usually the source of the imbalance."
+            ]
+        },
+        {
+            "question": "A model predicts 'Loan Approved' for 100% of Group A and 100% of Group B. However, Group A's accuracy is 95% while Group B's accuracy is 50%. Which metric would be at 1.0?",
+            "options": [
+                "Disparate Impact (DI)",
+                "Difference in Proportions of Labels (DPL)",
+                "Treatment Equality (TE)",
+                "Precision Score"
+            ],
+            "correct": 0,
+            "explanations": [
+                "Correct! Since both groups are predicted positive at 100%, DI = 100/100 = 1.0. (DI doesn't care if the prediction is accurate, only that it is positive).",
+                "Incorrect. DPL measures labels, not predictions.",
+                "Incorrect. Different accuracies mean different error rates, so TE would not be equal.",
+                "Incorrect. Precision relies on accuracy, which differs heavily here."
+            ]
+        },
+        {
+            "question": "When calculating Difference in Proportions of Labels (DPL), what does a value of -0.5 indicate?",
+            "options": [
+                "Privileged group had higher success historically",
+                "The model is 50% accurate",
+                "Underrepresented group is too small",
+                "The model is perfectly fair"
+            ],
+            "correct": 0,
+            "explanations": [
+                "Correct! DPL = P(Advantaged) - P(Disadvantaged). If positive or negative, it indicates a gap. The magnitude (0.5) shows a 50% gap in historical success.",
+                "Incorrect. DPL evaluates data labels, not model accuracy.",
+                "Incorrect. This describes CI.",
+                "Incorrect. A fair DPL is close to 0."
+            ]
+        },
+        {
+            "question": "A recruiter uses an ML model to filter resumes. If the recruiter is concerned that the model is 'over-rejecting' qualified women compared to men, which specific error component should they check within TE?",
+            "options": [
+                "False Negatives (FN)",
+                "Class Imbalance (CI)",
+                "True Positives (TP)",
+                "False Positives (FP)"
+            ],
+            "correct": 0,
+            "explanations": [
+                "Correct! A False Negative means the model predicted 'Reject' (Negative) but the ground truth was 'Qualified' (False). This is 'over-rejection'.",
+                "Incorrect. CI measures records, not rejections.",
+                "Incorrect. TP measures correct approvals.",
+                "Incorrect. FP means wrongly accepting an unqualified candidate."
+            ]
+        }
+    ]
+}
