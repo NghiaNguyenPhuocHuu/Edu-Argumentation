@@ -314,6 +314,14 @@ dom.customDataUpload.addEventListener('change', function(e) {
     reader.readAsText(file);
 });
 
+// Helper Function that injects the WebComponent
+function formatText(text) {
+    if (!text) return '';
+    const viewer = document.createElement('rich-text-viewer');
+    viewer.setAttribute('content', encodeURIComponent(text));
+    return viewer.outerHTML;
+}
+
 function renderTutorial() {
     if (!tutorialData || !tutorialData.sections) return;
     dom.tutorialTitle.textContent = tutorialData.title || 'Tutorial Module';
@@ -348,9 +356,12 @@ function renderTutorial() {
                     strong.className = `font-semibold text-${theme}`;
                     strong.textContent = parts[0] + ':';
                     spanEl.appendChild(strong);
-                    spanEl.appendChild(document.createTextNode(parts.slice(1).join(':')));
+                    
+                    const textWrapper = document.createElement('span');
+                    textWrapper.innerHTML = formatText(parts.slice(1).join(':'));
+                    spanEl.appendChild(textWrapper);
                 } else {
-                    spanEl.textContent = itemData;
+                    spanEl.innerHTML = formatText(itemData);
                 }
             } 
             else if (typeof itemData === 'object' && itemData !== null) {
@@ -366,7 +377,7 @@ function renderTutorial() {
                         if (block.type === 'text') {
                             const p = document.createElement('p');
                             p.className = 'mb-6 text-gray-200 leading-relaxed';
-                            p.textContent = block.content;
+                            p.innerHTML = formatText(block.content);
                             spanEl.appendChild(p);
                         } else if (block.type === 'media' && block.mediaType === 'image') {
                             const img = document.createElement('img');
@@ -394,7 +405,7 @@ function renderTutorial() {
                                 const p = document.createElement('p');
                                 const textBrightness = block.variant === 'example' ? 'text-gray-100' : 'text-gray-300';
                                 p.className = `${textBrightness} mb-4 leading-relaxed text-lg`;
-                                p.textContent = block.intro || block.content;
+                                p.innerHTML = formatText(block.intro || block.content);
                                 cardDiv.appendChild(p);
                             }
                             if (block.bullets && Array.isArray(block.bullets)) {
@@ -402,7 +413,7 @@ function renderTutorial() {
                                 ul.className = 'list-disc list-outside text-gray-300 ml-6 space-y-3 leading-relaxed text-lg';
                                 block.bullets.forEach(bullet => {
                                     const li = document.createElement('li');
-                                    li.textContent = bullet;
+                                    li.innerHTML = formatText(bullet);
                                     ul.appendChild(li);
                                 });
                                 cardDiv.appendChild(ul);
@@ -423,7 +434,7 @@ function renderTutorial() {
                                 ul.className = 'space-y-4 text-gray-200 leading-relaxed';
                                 block.items.forEach(item => {
                                     const li = document.createElement('li');
-                                    li.innerHTML = item.replace(/\*\*(.*?)\*\*/g, '<strong class="text-white font-semibold">$1</strong>');
+                                    li.innerHTML = formatText(item);
                                     ul.appendChild(li);
                                 });
                                 calloutDiv.appendChild(ul);
@@ -439,14 +450,6 @@ function renderTutorial() {
 
         dom.tutorialContent.appendChild(sectionClone);
     });
-}
-
-function formatText(text) {
-    if (!text) return '';
-    // FIXED: Catch numbers even if they are mashed against the previous word's punctuation
-    let formatted = text.replace(/([^\s>])\s*(\d+\.\s)/g, '$1<br><br>$2');
-    formatted = formatted.replace(/\n/g, '<br>');
-    return formatted;
 }
 
 function loadQuestion() {
@@ -477,7 +480,6 @@ function loadQuestion() {
         
         const letter = String.fromCharCode(65 + index);
         letterSpan.textContent = letter;
-        // FIXED: Apply formatText and inject via innerHTML so <br> tags actually render
         textSpan.innerHTML = formatText(optionText);
         
         btn.addEventListener('click', () => handleAnswerSelect(index, btn));
