@@ -1,0 +1,50 @@
+{
+    "tutorialData": {
+        "title": "Quiz Formatting Test Module",
+        "lead": "Testing simple vs. multi-step numbered quiz options.",
+        "sections": [
+            {
+                "title": "1. Formatting Verification",
+                "note": "Validating option text parsing in app.js.",
+                "themeColor": "indigo-500",
+                "items": [
+                    "This module tests whether simple options stay concise and numbered options split cleanly into new lines."
+                ]
+            }
+        ]
+    },
+    "quizData": [
+        {
+            "question": "Scenario 1 (Simple Options): What is the primary metric for measuring record count balance across groups?",
+            "options": [
+                "Class Imbalance (CI)",
+                "Disparate Impact (DI)",
+                "Difference in Proportions of Labels (DPL)",
+                "Treatment Equality (TE)"
+            ],
+            "correct": 0,
+            "explanations": [
+                "Class Imbalance measures the sheer volume of representation across groups.",
+                "Disparate Impact evaluates post-training prediction ratios.",
+                "DPL measures historical label proportion gaps.",
+                "Treatment Equality checks the ratio of false positives to false negatives."
+            ]
+        },
+        {
+            "question": "Scenario 2 (Numbered Multi-Step Options): What is the recommended sequence to handle high Class Imbalance?",
+            "options": [
+                "1. Perform EDA to confirm representation gap.2. Apply SMOTE oversampling on the minority group.3. Retrain model and evaluate performance.",
+                "1. Deploy the unmitigated model directly.2. Log predictions to CloudWatch.3. Wait for feedback.",
+                "1. Delete all records from the privileged group.2. Retrain model with remaining data.",
+                "1. Ignore pre-training metrics.2. Rely exclusively on Post-Training Treatment Equality."
+            ],
+            "correct": 0,
+            "explanations": [
+                "1. EDA identifies the gap early.2. Oversampling balances minority representation.3. Retraining validates the fix.",
+                "Deploying unmitigated models propagates bias.",
+                "Deleting data destroys valuable model inputs.",
+                "Pre-training metrics should never be ignored."
+            ]
+        }
+    ]
+}
