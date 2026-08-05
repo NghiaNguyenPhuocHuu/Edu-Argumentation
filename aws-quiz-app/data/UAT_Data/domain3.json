@@ -1,0 +1,414 @@
+{
+  "tutorialData": {
+    "title": "Domain 3: Modeling & Training",
+    "lead": "This domain focuses on selecting the right algorithm for the job, resolving overfitting, evaluating model performance with the correct metrics, and orchestrating training jobs cost-effectively.",
+    "sections": [
+      {
+        "title": "1. Selecting SageMaker Built-in Algorithms",
+        "themeColor": "emerald-600",
+        "items": [
+          {
+            "term": "Algorithm Selection",
+            "blocks": [
+              {
+                "type": "text",
+                "content": "The exam will present a specific business problem and ask you to pick the most efficient built-in algorithm."
+              },
+              {
+                "type": "card",
+                "bullets": [
+                  "**DeepAR (Time Series Forecasting):** Used for forecasting 1D time series. It can learn global seasonal patterns from older products and apply them to \"cold-start\" newer products with limited history. **If there are gaps, leave the values as NaN** (do not impute).",
+                  "**Factorization Machines:** Used for Recommendation Engines. Designed to handle extremely high-dimensional, highly sparse datasets (e.g., millions of rows of one-hot encoded user IDs).",
+                  "**BlazingText (NLP):** Used for Word2Vec and Text Classification. For supervised classification, target labels MUST be prefixed exactly with **`__label__`**.",
+                  "**Object Detection vs. Image Classification:** Object Detection identifies *what* and *where* (bounding boxes) and natively requires the **RecordIO** format.",
+                  "**K-Means (Clustering):** Unsupervised algorithm. By default, SageMaker uses **K-Means++** initialization for mathematical stability."
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "title": "2. Resolving Overfitting & Quirks",
+        "themeColor": "teal-500",
+        "items": [
+          {
+            "term": "Tuning & Troubleshooting",
+            "blocks": [
+              {
+                "type": "card",
+                "bullets": [
+                  "**XGBoost Overfitting:** **Decrease `max_depth`** and **Increase `min_child_weight`**. XGBoost also handles missing values (NaNs) internally automatically.",
+                  "**Linear Learner (Class Imbalance):** To force the algorithm to care more about a rare minority class (like fraud), adjust the **`positive_example_weight_mult`** hyperparameter.",
+                  "**Neural Networks (Deep Learning):** Fix overfitting by implementing **Dropout layers** or adding L1/L2 Regularization."
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "title": "3. Custom Training & Infrastructure (BYOC)",
+        "themeColor": "green-600",
+        "items": [
+          {
+            "term": "Bring Your Own Container",
+            "blocks": [
+              {
+                "type": "card",
+                "bullets": [
+                  "**BYOC Paths:** When a custom Docker container finishes training, the script MUST save the final model artifacts exactly to the **`/opt/ml/model`** directory.",
+                  "**Distributed Training (Model Parallelism):** Used when the neural network is too large for one GPU (OOM error). You split the *model layers* across multiple GPUs.",
+                  "**Managed Spot Training:** Saves compute costs. You must **enable checkpointing** AND configure the **`MaxWaitTimeInSeconds`** parameter.",
+                  "**FastFile Mode:** Streams massive datasets directly from S3, but tricks your custom training script into reading them as standard POSIX files."
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "title": "4. Model Evaluation & Optimization",
+        "themeColor": "lime-600",
+        "items": [
+          {
+            "term": "Metrics & Hyperparameter Tuning",
+            "blocks": [
+              {
+                "type": "card",
+                "bullets": [
+                  "**Bayesian Optimization:** The most efficient tuning strategy. Learns from previous runs to intelligently guess the best parameters.",
+                  "**Warm Start:** Leverages evaluations from a previous job. The **hyperparameter search space MUST remain identical**.",
+                  "**Maximize Recall:** Use when **False Negatives are highly expensive** (e.g., catching fraud, cancer diagnosis).",
+                  "**AUC-ROC:** The probability that the model will score a randomly chosen positive example higher than a randomly chosen negative example."
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "quizData": [
+    {
+      "question": "A data scientist is training an XGBoost model on Amazon SageMaker to predict customer churn. After evaluating the model, the scientist notices that the training dataset has an accuracy of 99%, while the validation dataset has an accuracy of only 72%. Which hyperparameter adjustment should the scientist make to mitigate this issue?",
+      "options": [
+        "Decrease `min_child_weight` and increase `max_depth`.",
+        "Increase `eta` and decrease `gamma`.",
+        "Increase `max_depth` and decrease `subsample`.",
+        "Increase `min_child_weight` and decrease `max_depth`."
+      ],
+      "correct": 3,
+      "explanations": [
+        "Incorrect. This action will increase the model's complexity, leading to even more severe overfitting.",
+        "Incorrect. Increasing eta (learning rate) can cause the model to miss global minima, and decreasing gamma reduces regularisation.",
+        "Incorrect. Increasing max_depth creates more complex trees, which directly causes more overfitting.",
+        "Correct! Decreasing max_depth makes trees shallower, and increasing min_child_weight requires more instances in a node to justify a split. Both strongly prevent overfitting in XGBoost."
+      ]
+    },
+    {
+      "question": "A retail company wants to forecast the daily demand for 5,000 different products across 50 stores. Many of the newer products have limited historical data, but the company wants the model to learn seasonal patterns from older, established products and apply them to the newer ones. Which Amazon SageMaker built-in algorithm is designed for this specific use case?",
+      "options": [
+        "Amazon SageMaker XGBoost.",
+        "Amazon SageMaker DeepAR.",
+        "Amazon SageMaker Factorization Machines.",
+        "Amazon SageMaker Sequence-to-Sequence."
+      ],
+      "correct": 1,
+      "explanations": [
+        "Incorrect. While XGBoost can be used for regression, it does not natively learn global patterns across multiple related time series to cold-start new ones.",
+        "Correct! DeepAR uses Recurrent Neural Networks (RNNs) to learn global patterns across multiple related time series, making it perfect for cold-starting new products.",
+        "Incorrect. Factorization Machines are used for high-dimensional sparse data, typically for recommendation engines.",
+        "Incorrect. Sequence-to-Sequence is used for NLP tasks like machine translation."
+      ]
+    },
+    {
+      "question": "An ML engineering team is developing a custom Natural Language Processing model with billions of parameters. During training on an Amazon EC2 `p3.16xlarge` instance, the training job crashes with an Out Of Memory (OOM) error because the neural network itself is too large to fit into the memory of a single GPU. Which distributed training technique must the team implement to resolve this?",
+      "options": [
+        "Implement SageMaker data parallelism.",
+        "Increase the size of the EBS volume.",
+        "Implement SageMaker model parallelism.",
+        "Utilize SageMaker Pipe Mode."
+      ],
+      "correct": 2,
+      "explanations": [
+        "Incorrect. Data parallelism splits data batches across GPUs, but each individual GPU still requires the *entire* model in its memory, which fails here.",
+        "Incorrect. An Out Of Memory (OOM) error on a GPU refers to GPU VRAM limits, not the instance's disk storage space.",
+        "Correct! Model parallelism is explicitly designed to split the actual layers of a massive neural network across multiple GPUs when it cannot fit into a single GPU's memory.",
+        "Incorrect. Pipe Mode streams data from S3 to speed up I/O; it does not solve GPU memory limitations."
+      ]
+    },
+    {
+      "question": "A data scientist is building a recommendation engine to predict whether a user will click on a specific advertisement. The dataset contains millions of rows representing users and ads, heavily utilizing one-hot encoding for categorical features, resulting in a high-dimensional, extremely sparse dataset. Which built-in SageMaker algorithm is optimized for this task?",
+      "options": [
+        "K-Means.",
+        "XGBoost.",
+        "Factorization Machines.",
+        "Principal Component Analysis (PCA)."
+      ],
+      "correct": 2,
+      "explanations": [
+        "Incorrect. K-Means is an unsupervised clustering algorithm, not a supervised algorithm for click-through rate prediction.",
+        "Incorrect. XGBoost generally struggles with extremely sparse, high-dimensional data generated by millions of one-hot encoded features.",
+        "Correct! Factorization Machines are mathematically optimized to handle extremely high-dimensional, highly sparse datasets, making them the standard choice for recommendation engines.",
+        "Incorrect. PCA is a dimensionality reduction technique, not a supervised learning algorithm."
+      ]
+    },
+    {
+      "question": "A startup wants to drastically reduce their machine learning training costs by utilizing Managed Spot Training in Amazon SageMaker. To ensure the training job successfully completes even if the spot instances are interrupted and replaced, which specific configuration must the engineer provide?",
+      "options": [
+        "Configure `MaxWaitTimeInSeconds` and enable checkpointing.",
+        "Configure `MaxRetryCount` and enable checkpointing.",
+        "Set `SpotInstanceWaitTime` to 3600.",
+        "Enable SageMaker FastFile mode."
+      ],
+      "correct": 0,
+      "explanations": [
+        "Correct! Spot training requires checkpointing to save intermediate state, and you must set `MaxWaitTimeInSeconds` to tell SageMaker how long to wait for replacement capacity before failing the job.",
+        "Incorrect. `MaxRetryCount` is not the correct API parameter used to configure Spot Training wait times.",
+        "Incorrect. The required API parameter name is specifically `MaxWaitTimeInSeconds`, not `SpotInstanceWaitTime`.",
+        "Incorrect. FastFile mode is for streaming data from S3; it has nothing to do with managing Spot instance interruptions."
+      ]
+    },
+    {
+      "question": "An ML engineer is packaging a custom TensorFlow training script into a Docker container to run on Amazon SageMaker (Bring Your Own Container). For SageMaker to successfully extract the final trained model and upload it to Amazon S3, into which specific internal container directory must the training script save the model artifacts?",
+      "options": [
+        "The `/opt/ml/checkpoints` directory.",
+        "The `/opt/ml/model` directory.",
+        "The `/opt/ml/output` directory.",
+        "The `/tmp/sagemaker/model` directory."
+      ],
+      "correct": 1,
+      "explanations": [
+        "Incorrect. Checkpoints are for saving intermediate state during long or Spot training jobs, not the final packaged model.",
+        "Correct! SageMaker's rigid BYOC contract requires the training script to write the final model artifacts to the exact `/opt/ml/model` path so SageMaker can zip and upload them to S3.",
+        "Incorrect. The output directory is used for saving non-model artifacts, like failure logs or custom evaluation reports.",
+        "Incorrect. This is not the standardized, required path for the SageMaker BYOC container contract."
+      ]
+    },
+    {
+      "question": "A bank is training a binary classification model to detect fraudulent transactions. Fraud is extremely rare (0.1% of transactions). The bank's business objective is to catch as many fraudulent transactions as possible, because the financial cost of missing a fraudulent transaction is significantly higher than the minor inconvenience of investigating a false alarm. Which evaluation metric should the data science team maximize during hyperparameter tuning?",
+      "options": [
+        "Maximize the Precision score.",
+        "Maximize the Accuracy score.",
+        "Maximize the Recall score.",
+        "Maximize the Specificity score."
+      ],
+      "correct": 2,
+      "explanations": [
+        "Incorrect. Maximizing precision minimizes False Positives (false alarms). The bank cares more about minimizing False Negatives.",
+        "Incorrect. A model that blindly predicts 100% 'Not Fraud' achieves 99.9% accuracy, but is completely useless to the business.",
+        "Correct! Maximizing Recall minimizes False Negatives. This aligns with the business objective to catch as many real frauds as possible, even at the cost of investigating a few false alarms.",
+        "Incorrect. Specificity measures the true negative rate, which focuses on the overwhelming majority of legitimate transactions, not the rare fraud."
+      ]
+    },
+    {
+      "question": "An ML team needs to tune five continuous hyperparameters for a complex deep learning model. Training a single model takes 12 hours. To minimize expensive compute costs, the team needs a tuning strategy that learns from the performance of previous training runs to intelligently guess the most promising hyperparameter values for subsequent runs. Which strategy should be selected?",
+      "options": [
+        "Random search strategy.",
+        "Grid search strategy.",
+        "Warm start optimization.",
+        "Bayesian optimization strategy."
+      ],
+      "correct": 3,
+      "explanations": [
+        "Incorrect. Random search blindly selects values without learning anything from past executions.",
+        "Incorrect. Grid search exhaustively tries every single combination. For a 12-hour training job, this would take an impossible amount of time.",
+        "Incorrect. Warm start allows a *new* tuning job to inherit math from an *old* job, but Bayesian is the actual *strategy* used to learn dynamically during a job.",
+        "Correct! Bayesian optimization treats hyperparameter tuning as a regression problem, mathematically learning from previous evaluations to intelligently select the next parameter set, saving massive compute time."
+      ]
+    },
+    {
+      "question": "A data scientist is preparing a text dataset to train a supervised multi-class classifier using the Amazon SageMaker BlazingText algorithm in 'Text Classification' mode. What specific formatting rule must be applied to the target labels within the training file?",
+      "options": [
+        "Prefix each label with `__class__`.",
+        "Wrap each label in `<label>` tags.",
+        "Prefix each label with `__label__`.",
+        "Suffix each label with `_target`."
+      ],
+      "correct": 2,
+      "explanations": [
+        "Incorrect. This is not the required format for BlazingText.",
+        "Incorrect. BlazingText expects flat text files, not XML/HTML style formatting.",
+        "Correct! BlazingText strictly requires supervised text classification labels to be prefixed exactly with `__label__` (e.g., `__label__positive`).",
+        "Incorrect. This format is not recognized by the BlazingText container."
+      ]
+    },
+    {
+      "question": "A healthcare company has a very small dataset of 500 labeled X-ray images. They need to train a model to classify the images into 'healthy' or 'pneumonia'. Training a Deep Convolutional Neural Network from scratch leads to severe overfitting. How should the team configure the SageMaker Image Classification built-in algorithm to achieve high accuracy with this limited data?",
+      "options": [
+        "Initialize with pre-trained weights.",
+        "Initialize with orthogonal weights.",
+        "Apply a logarithmic transformation to the pixels.",
+        "Increase the learning rate significantly."
+      ],
+      "correct": 0,
+      "explanations": [
+        "Correct! Transfer Learning (using pre-trained weights from massive datasets like ImageNet) allows the model to repurpose generalized feature detection, preventing overfitting on tiny localized datasets.",
+        "Incorrect. Orthogonal initialization is a mathematical weight initialization technique, but it doesn't solve the core issue of a fundamentally tiny dataset.",
+        "Incorrect. Logarithmic transformations are used for skewed continuous numeric data in tabular datasets, not raw image pixel manipulation.",
+        "Incorrect. Increasing the learning rate will cause the model to diverge or fail to converge entirely, worsening the problem."
+      ]
+    },
+    {
+      "question": "An ML engineer is formatting training data for the Amazon SageMaker Object Detection built-in algorithm. The dataset contains thousands of images of traffic intersections, and the model must identify the exact location of vehicles. Which data format is natively required to provide the images along with their bounding box annotations?",
+      "options": [
+        "CSV format.",
+        "RecordIO format.",
+        "Parquet format.",
+        "JSON Lines (JSONL) format."
+      ],
+      "correct": 1,
+      "explanations": [
+        "Incorrect. CSV cannot efficiently or natively store binary image data alongside bounding box coordinates.",
+        "Correct! The RecordIO format is explicitly designed to encapsulate both raw image bytes and complex bounding box annotations efficiently for SageMaker algorithms.",
+        "Incorrect. Parquet is a columnar storage format for tabular data analytics, not optimized for streaming image and annotation payloads.",
+        "Incorrect. While manifest files use JSONL format, the native optimized payload format for the algorithm itself is RecordIO."
+      ]
+    },
+    {
+      "question": "A data scientist is preparing a tabular dataset for model training. The dataset contains several numeric columns with a small percentage of missing values (NaNs). Due to strict compliance reasons, the scientist is not allowed to modify the raw dataset by imputing or dropping any data points. Which SageMaker built-in algorithm can natively ingest this dataset and handle the missing values internally during training?",
+      "options": [
+        "The Linear Learner algorithm.",
+        "The K-Means algorithm.",
+        "The Factorization Machines algorithm.",
+        "The XGBoost algorithm."
+      ],
+      "correct": 3,
+      "explanations": [
+        "Incorrect. Linear models require complete matrices and will fail if NaNs are present.",
+        "Incorrect. Distance calculations in K-Means clustering will crash if NaNs are present in the coordinates.",
+        "Incorrect. Factorization Machines require sparse matrix formatting (RecordIO-protobuf with Float32), but cannot handle raw NaN values.",
+        "Correct! XGBoost natively learns the optimal default direction to split missing values (NaNs) during tree construction, requiring zero imputation."
+      ]
+    },
+    {
+      "question": "An engineer is training a binary classification model using the Amazon SageMaker Linear Learner algorithm. The dataset has a severe class imbalance. The engineer wants the algorithm to automatically adjust the weights of the loss function during training to penalize errors on the minority class more heavily. Which specific hyperparameter must be modified?",
+      "options": [
+        "Adjust the `L2_regularization_weight` parameter.",
+        "Adjust the `positive_example_weight_mult` parameter.",
+        "Adjust the `mini_batch_size` parameter.",
+        "Adjust the `learning_rate` parameter."
+      ],
+      "correct": 1,
+      "explanations": [
+        "Incorrect. L2 regularization penalizes extremely large weights to prevent general overfitting; it does not explicitly balance classes.",
+        "Correct! In Linear Learner, the `positive_example_weight_mult` hyperparameter heavily penalizes the model when it misclassifies a positive (minority/rare) example, forcing it to care more about the rare class.",
+        "Incorrect. Mini-batch size dictates how many records are processed before a gradient update occurs.",
+        "Incorrect. Learning rate controls the step size taken during gradient descent optimization."
+      ]
+    },
+    {
+      "question": "A retail analytics team is using SageMaker DeepAR to forecast daily sales for thousands of items. During the data extraction process, the team notices that several items were out of stock for a few days, resulting in missing sales data points (represented as empty gaps in the time series) for those specific dates. How should the team handle these gaps prior to training the DeepAR model?",
+      "options": [
+        "Impute the missing values with the mean.",
+        "Leave the missing values as NaN.",
+        "Drop the entire item from the dataset.",
+        "Interpolate the values using forward-fill."
+      ],
+      "correct": 1,
+      "explanations": [
+        "Incorrect. Imputing with the historical mean tells the model the product was selling normally, destroying the model's understanding of the stockout event.",
+        "Correct! DeepAR is specifically designed to handle missing values natively. You MUST leave them as NaN or null so the algorithm mathematically recognizes and accounts for the true gap in data.",
+        "Incorrect. Dropping an entire product's history due to a temporary stockout discards incredibly valuable training data.",
+        "Incorrect. Forward-fill tells the model the item continued selling at yesterday's exact rate, which is false since it was out of stock."
+      ]
+    },
+    {
+      "question": "A data science team needs to train a massive custom TensorFlow model on 5 Terabytes of text data residing in Amazon S3. The team wants to stream the data directly from S3 into the training container to eliminate the time spent downloading the data to local EBS volumes, but the training script natively expects to read the data as standard POSIX files from a local file system. Which SageMaker input mode satisfies these requirements?",
+      "options": [
+        "Amazon SageMaker Pipe mode.",
+        "Amazon SageMaker File mode.",
+        "Amazon SageMaker Stream mode.",
+        "Amazon SageMaker FastFile mode."
+      ],
+      "correct": 3,
+      "explanations": [
+        "Incorrect. While Pipe mode streams data, the training script must be custom-written to read from Unix FIFOs instead of standard files.",
+        "Incorrect. File mode downloads the entire 5TB dataset to the local EBS volume before training even begins, which would take hours.",
+        "Incorrect. 'Stream mode' is not a valid or real Amazon SageMaker input mode.",
+        "Correct! FastFile mode streams data directly from S3 on demand, but elegantly presents it to the custom training script as standard POSIX files, bridging speed with script compatibility."
+      ]
+    },
+    {
+      "question": "A deep learning model trained on image data is exhibiting classic signs of overfitting. The training accuracy is extremely high, but the validation accuracy plateaued early and is now decreasing. The team decides to apply a regularization technique that randomly ignores a subset of neurons during each forward pass of the training phase. Which technique does this describe?",
+      "options": [
+        "Implement L1 regularization.",
+        "Implement dropout layers.",
+        "Implement L2 regularization.",
+        "Implement batch normalization."
+      ],
+      "correct": 1,
+      "explanations": [
+        "Incorrect. L1 regularization adds an absolute value penalty to weights, leading to sparse feature selection, not randomly ignoring neurons.",
+        "Correct! Dropout is a neural network technique where a percentage of neurons are randomly 'dropped' (ignored) during training, forcing the network to learn robust, redundant pathways rather than over-relying on specific nodes.",
+        "Incorrect. L2 regularization adds a squared magnitude penalty to weights, distributing them smoothly but not dropping them.",
+        "Incorrect. Batch normalization normalizes the activations of a previous layer to speed up training stability, it is not a primary regularization technique."
+      ]
+    },
+    {
+      "question": "A data scientist is utilizing the SageMaker K-Means built-in algorithm to segment customers based on purchasing behavior. The scientist notes that standard K-Means is highly sensitive to the initial placement of the cluster centers, often resulting in suboptimal groupings. To ensure a more optimal and mathematically stable start, which initialization method does SageMaker K-Means use by default?",
+      "options": [
+        "Random initialization.",
+        "Zero initialization.",
+        "K-Means++ initialization.",
+        "Principal Component initialization."
+      ],
+      "correct": 2,
+      "explanations": [
+        "Incorrect. Pure random initialization often groups initial centers too closely, leading to poor local minima.",
+        "Incorrect. Placing all centroids at the exact same zero point prevents the algorithm from clustering entirely.",
+        "Correct! SageMaker K-Means natively uses K-Means++ initialization by default. It strategically places the initial cluster centers far apart, leading to dramatically faster and more stable convergence.",
+        "Incorrect. Principal Component Analysis is a separate dimensionality reduction technique."
+      ]
+    },
+    {
+      "question": "An NLP team is evaluating the Amazon SageMaker Sequence-to-Sequence (Seq2Seq) built-in algorithm. They need to map an input sequence of tokens to an output sequence of tokens, where the lengths of the sequences differ. Which specific natural language processing task is this algorithm fundamentally designed to solve?",
+      "options": [
+        "Topic modeling tasks.",
+        "Word embedding generation.",
+        "Document classification.",
+        "Machine translation tasks."
+      ],
+      "correct": 3,
+      "explanations": [
+        "Incorrect. Topic modeling is handled by unsupervised algorithms like LDA or Neural Topic Model (NTM).",
+        "Incorrect. Word embeddings are generated by the BlazingText Word2Vec algorithm.",
+        "Incorrect. Document classification maps an entire sequence to a single label, not an output sequence of varying length.",
+        "Correct! Seq2Seq algorithms natively map an input sequence (e.g., an English sentence) to an output sequence of a completely different length (e.g., a French translation)."
+      ]
+    },
+    {
+      "question": "After training a binary classification model to predict equipment failure, a data scientist reviews the Area Under the Receiver Operating Characteristic Curve (AUC-ROC) metric. The model achieved an AUC of 0.85. Mathematically, what does this specific value represent in the context of model evaluation?",
+      "options": [
+        "The proportion of predicted positive examples that were correctly identified.",
+        "The probability that a random positive example is scored higher than a random negative example.",
+        "The ratio of true positives to the total number of predicted positives.",
+        "The area under the precision-recall curve."
+      ],
+      "correct": 1,
+      "explanations": [
+        "Incorrect. This describes the Precision metric, not the AUC-ROC.",
+        "Correct! The strict mathematical definition of AUC-ROC is the probability that the classifier will rank a randomly chosen positive instance higher than a randomly chosen negative instance.",
+        "Incorrect. This is also the definition of Precision.",
+        "Incorrect. That describes PR-AUC (Precision-Recall AUC), which is a completely different curve evaluation metric."
+      ]
+    },
+    {
+      "question": "A machine learning team is utilizing Automatic Model Tuning (AMT) in SageMaker. To save compute time on a massive XGBoost tuning job, they decide to use the 'Warm Start' feature. This allows the new tuning job to leverage the learned evaluations from a previously completed parent tuning job. For Warm Start to function properly, which configuration must remain absolutely identical between the parent and child jobs?",
+      "options": [
+        "The total number of training jobs.",
+        "The maximum runtime of the training jobs.",
+        "The hyperparameter search space.",
+        "The EC2 instance type used for training."
+      ],
+      "correct": 2,
+      "explanations": [
+        "Incorrect. You are fully allowed to increase or decrease the maximum number of training jobs in the child process.",
+        "Incorrect. The allowed runtime per job can be modified without breaking Warm Start.",
+        "Correct! Warm start relies on Bayesian optimization math from a previous job. For the algorithm to successfully reuse that math, the boundaries (the hyperparameter search space) must remain absolutely identical.",
+        "Incorrect. You can scale the compute instance types up or down without affecting the underlying mathematical search space."
+      ]
+    }
+  ]
+}

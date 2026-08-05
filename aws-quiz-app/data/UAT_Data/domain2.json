@@ -1,0 +1,410 @@
+{
+  "tutorialData": {
+    "title": "Domain 2: EDA & Statistics",
+    "lead": "This domain tests your ability to use mathematical intuition and AWS tools to uncover patterns, detect bias, and explain model predictions. Focus heavily on distributions, statistical tests, and Amazon SageMaker Clarify.",
+    "sections": [
+      {
+        "title": "1. Statistical Correlation Metrics",
+        "themeColor": "purple-500",
+        "items": [
+          {
+            "term": "Measuring Feature Relationships",
+            "blocks": [
+              {
+                "type": "text",
+                "content": "How do we measure relationships between features?"
+              },
+              {
+                "type": "card",
+                "bullets": [
+                  "**Pearson Correlation:** Use when both features are **numeric** and have a **linear** relationship. Assumes normal distribution.",
+                  "**Spearman Rank Correlation:** Use when both features are **numeric** but the relationship is **non-linear / monotonic** (it strictly goes up or down, but not in a straight line).",
+                  "**Cramér's V:** Use to find the association between two **categorical** (nominal) features. (e.g., Zip Code vs. Category)."
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "title": "2. Data Distributions & Transformations",
+        "themeColor": "teal-500",
+        "items": [
+          {
+            "term": "Handling Skewed Data",
+            "blocks": [
+              {
+                "type": "text",
+                "content": "Linear models require normally distributed data. Skewed data must be transformed."
+              },
+              {
+                "type": "card",
+                "bullets": [
+                  "**Logarithmic Transformation:** Compresses extreme outliers. Apply when data is heavily right-skewed (long right tail).",
+                  "**Discretization (Binning):** Turns a continuous numeric feature into categories to capture **non-linear patterns** for a linear model.",
+                  "**Autocorrelation Function (ACF):** Time-series technique to visualize if past values correlate with current values."
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "title": "3. SageMaker Clarify: Bias & Explainability",
+        "themeColor": "emerald-500",
+        "items": [
+          {
+            "term": "Bias Metrics Overview",
+            "blocks": [
+              {
+                "type": "card",
+                "title": "Pre-Training vs Post-Training",
+                "bullets": [
+                  "**DPL (Difference in Proportions of Labels):** Imbalance in historical positive outcomes between groups (Pre-Training).",
+                  "**CI (Class Imbalance):** Simply counts if there are more records for one demographic (Pre-Training).",
+                  "**DI (Disparate Impact):** Ratio of positive prediction rates between groups (Post-Training).",
+                  "**TE (Treatment Equality):** Ratio of false positives to false negatives (Post-Training)."
+                ]
+              }
+            ]
+          },
+          {
+            "term": "Explainability Tools",
+            "blocks": [
+              {
+                "type": "card",
+                "bullets": [
+                  "**SHAP:** **Instance-level** (local). Why did *this specific person* get denied?",
+                  "**PDP:** **Average global effect** of a feature across the dataset.",
+                  "**ICE:** Plots **multiple separate lines** for individual data points to show specific relationships."
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "quizData": [
+    {
+      "question": "A data scientist is analyzing a retail dataset and needs to determine if there is a statistical association between the 'Customer Zip Code' and the 'Purchased Product Category'. Both of these features are strictly categorical. Which correlation metric should be utilized?",
+      "options": [
+        "Pearson correlation coefficient.",
+        "Spearman rank correlation.",
+        "Cramér's V statistic.",
+        "Kendall's tau coefficient."
+      ],
+      "correct": 2,
+      "explanations": [
+        "Incorrect. Pearson measures linear relationships between two continuous numeric variables, not categorical data.",
+        "Incorrect. Spearman evaluates monotonic relationships between ordinal or continuous numeric variables, requiring the data to have a ranked order.",
+        "Correct! Cramér's V is a statistical metric explicitly designed to measure the strength of association between two nominal (categorical) features.",
+        "Incorrect. Kendall's tau is used for ordinal (ranked) data to measure the ordinal association between two measured quantities."
+      ]
+    },
+    {
+      "question": "An ML team is using Amazon SageMaker Clarify to evaluate their training dataset for historical bias before training a loan approval model. They want to measure if the historical approval rates for loans are disproportionately lower for female applicants compared to male applicants. Which pre-training bias metric should they select?",
+      "options": [
+        "Difference in Proportions of Labels (DPL).",
+        "Class Imbalance (CI).",
+        "Disparate Impact (DI).",
+        "Treatment Equality (TE)."
+      ],
+      "correct": 0,
+      "explanations": [
+        "Correct! DPL measures if historical positive outcomes (labels) are imbalanced between demographics BEFORE training.",
+        "Incorrect. Class Imbalance (CI) only measures if there are more records (rows of data) for one demographic than another, ignoring the actual labels.",
+        "Incorrect. Disparate Impact (DI) is a POST-training metric that compares the ratio of the model's actual positive predictions.",
+        "Incorrect. Treatment Equality (TE) is a POST-training metric that evaluates the ratio of false positives to false negatives between demographic groups."
+      ]
+    },
+    {
+      "question": "A financial institution has deployed an XGBoost model to evaluate credit limit increases. A customer asks exactly why their specific request was denied. The team must provide an instance-level explanation detailing how much each feature contributed to this specific customer's denial. Which explainability technique should be used?",
+      "options": [
+        "Shapley Additive Explanations (SHAP).",
+        "Individual Conditional Expectation (ICE).",
+        "Partial Dependence Plots (PDP).",
+        "Latent Dirichlet Allocation (LDA)."
+      ],
+      "correct": 0,
+      "explanations": [
+        "Correct! SHAP provides instance-level (local) explainability, showing exactly how much each feature contributed to a single, specific prediction.",
+        "Incorrect. ICE plots show how changing a feature alters the prediction for an individual, but doesn't quantify each feature's contribution score to a specific outcome like SHAP does.",
+        "Incorrect. PDP shows the average global effect of a feature across the entire dataset, not an instance-level explanation.",
+        "Incorrect. LDA is an unsupervised learning algorithm used for topic modeling in natural language processing."
+      ]
+    },
+    {
+      "question": "During Exploratory Data Analysis, a data scientist plots a histogram of 'Annual Income'. The distribution has a massive cluster between $30,000 and $60,000, but a long, thin tail extending to the right due to a few billionaires. To apply a linear regression model, which transformation is most appropriate?",
+      "options": [
+        "StandardScaler.",
+        "Logarithmic transformation.",
+        "MinMaxScaler.",
+        "Polynomial transformation."
+      ],
+      "correct": 1,
+      "explanations": [
+        "Incorrect. StandardScaler centers the mean to 0 and variance to 1, but it does NOT change the underlying shape or skewness of the distribution.",
+        "Correct! A logarithmic transformation naturally compresses extreme large values (outliers), pulling in the long right tail to make the distribution more symmetric and bell-shaped.",
+        "Incorrect. MinMaxScaler squashes all values between 0 and 1, but preserves the exact same skewed shape of the distribution.",
+        "Incorrect. Polynomial transformations add complexity by creating interaction features; they do not fix skewed target or feature distributions."
+      ]
+    },
+    {
+      "question": "A team plots student test scores against 'Hours Studied'. They observe that as hours increase, scores strictly increase, but the curve flattens out at the top because scores cap at 100. Since the relationship is monotonic but strictly non-linear, which correlation metric provides the most accurate evaluation?",
+      "options": [
+        "Pearson correlation coefficient.",
+        "ANOVA.",
+        "Spearman rank correlation.",
+        "Cramér's V statistic."
+      ],
+      "correct": 2,
+      "explanations": [
+        "Incorrect. Pearson assumes a strictly linear (straight line) relationship. It will underestimate the correlation of a curved monotonic relationship.",
+        "Incorrect. ANOVA is a statistical test used to determine if the means of three or more independent groups are statistically significantly different.",
+        "Correct! Spearman rank correlation evaluates monotonic relationships (strictly increasing or decreasing) regardless of whether they are linear, making it perfect for this curve.",
+        "Incorrect. Cramér's V is used exclusively to measure the association between categorical variables, not continuous numeric variables."
+      ]
+    },
+    {
+      "question": "A machine learning engineer has extracted 500 dense numerical features from customer audio recordings. The engineer wants to create a 2D scatter plot visualization to verify if the recordings naturally group into distinct clusters. Which dimensionality reduction algorithm is explicitly optimized for visualizing complex high-dimensional data in 2D/3D?",
+      "options": [
+        "Principal Component Analysis (PCA).",
+        "t-Distributed Stochastic Neighbor Embedding (t-SNE).",
+        "Singular Value Decomposition (SVD).",
+        "K-Means Clustering."
+      ],
+      "correct": 1,
+      "explanations": [
+        "Incorrect. PCA is a linear technique focused on preserving global variance; it often struggles to separate complex, non-linear clusters in 2D space compared to t-SNE.",
+        "Correct! t-SNE is a non-linear algorithm explicitly designed for visualization. It excels at taking high-dimensional data and preserving local cluster structures tightly in 2D or 3D.",
+        "Incorrect. SVD is a matrix factorization technique often used as the underlying math for PCA or recommendation engines, not a direct non-linear visualization tool.",
+        "Incorrect. K-Means is a clustering algorithm, not a dimensionality reduction technique for visualization."
+      ]
+    },
+    {
+      "question": "A data engineer needs a fully managed, visual AWS tool to instantly generate summary statistics, identify missing values, and plot correlation matrices for a dataset without writing custom Python code. Which service should be utilized?",
+      "options": [
+        "Amazon SageMaker Data Wrangler.",
+        "AWS Glue DataBrew.",
+        "Amazon EMR Studio.",
+        "Amazon Athena."
+      ],
+      "correct": 0,
+      "explanations": [
+        "Correct! SageMaker Data Wrangler provides a visual UI inside SageMaker Studio specifically designed for EDA, generating statistics and visual data reports without custom code.",
+        "Incorrect. While DataBrew is a visual data preparation tool, Data Wrangler is the primary ML-focused tool inside SageMaker heavily tested on the exam for EDA and feature engineering.",
+        "Incorrect. EMR Studio is an IDE for running big data frameworks like Spark, requiring extensive custom coding.",
+        "Incorrect. Athena is a serverless interactive query service used to query data in S3 using standard SQL; it does not auto-generate visual EDA reports."
+      ]
+    },
+    {
+      "question": "An ML engineer is building an unsupervised anomaly detection system to identify extremely rare server behaviors in millions of rows of batch logs. Which algorithm natively available in AWS is best suited for this task?",
+      "options": [
+        "Random Cut Forest (RCF).",
+        "K-Means Clustering.",
+        "XGBoost Classification.",
+        "Latent Dirichlet Allocation (LDA)."
+      ],
+      "correct": 0,
+      "explanations": [
+        "Correct! Random Cut Forest (RCF) is AWS's native, unsupervised algorithm explicitly designed for anomaly detection in continuous data.",
+        "Incorrect. K-Means is used for grouping similar data into clusters. While distance from a centroid can imply anomalies, RCF is purpose-built for it.",
+        "Incorrect. XGBoost Classification requires labeled data (supervised learning), but the scenario explicitly asks for an unsupervised approach.",
+        "Incorrect. LDA is an algorithm used for topic modeling in Natural Language Processing (text data), not server log anomaly detection."
+      ]
+    },
+    {
+      "question": "A data scientist is imputing missing values for 'Household Net Worth'. The distribution contains extreme, massive outliers (e.g., billionaires). Which imputation strategy minimizes the impact of these extreme outliers on the imputed values?",
+      "options": [
+        "Mean imputation.",
+        "Median imputation.",
+        "Mode imputation.",
+        "Forward-fill interpolation."
+      ],
+      "correct": 1,
+      "explanations": [
+        "Incorrect. Mean imputation is highly sensitive to outliers. A few billionaires will drag the mean average drastically upward, ruining the imputation for average households.",
+        "Correct! Median imputation takes the exact middle value of the sorted data. It is mathematically robust to massive outliers, making it ideal for highly skewed data.",
+        "Incorrect. Mode imputation uses the most frequent value. While robust to outliers, it's typically used for categorical data, not continuous financial data.",
+        "Incorrect. Forward-fill is a time-series technique where the previous chronological value is carried forward; it doesn't make sense for independent household records."
+      ]
+    },
+    {
+      "question": "A dataset contains a categorical feature named 'City' with 2,500 unique values. Applying One-Hot Encoding causes the dataset to become too wide and sparse, crashing the model due to memory limits. Which encoding strategy should be used to handle this high-cardinality feature?",
+      "options": [
+        "Target encoding.",
+        "One-Hot encoding.",
+        "Label encoding.",
+        "Bag of Words."
+      ],
+      "correct": 0,
+      "explanations": [
+        "Correct! Target encoding replaces the categorical value with the historical average of the target variable for that specific category, preventing memory explosion while maintaining predictive power.",
+        "Incorrect. The question explicitly states that One-Hot Encoding caused a memory crash due to the feature's high cardinality (2,500 unique values).",
+        "Incorrect. Label encoding assigns arbitrary integers to categories (e.g., CityA=1, CityB=2). This implies a false mathematical hierarchy that can confuse machine learning algorithms.",
+        "Incorrect. Bag of Words is a text vectorization technique for processing entire documents of natural language, not for encoding a single categorical feature."
+      ]
+    },
+    {
+      "question": "An NLP pipeline needs to capture the semantic meaning of words so the model understands that 'refund' and 'reimbursement' have similar underlying contexts, even though they are spelled differently. Which text vectorization technique fulfills this requirement?",
+      "options": [
+        "TF-IDF vectorization.",
+        "Bag of Words vectorization.",
+        "Word2Vec embeddings.",
+        "N-Gram counting."
+      ],
+      "correct": 2,
+      "explanations": [
+        "Incorrect. TF-IDF evaluates word importance based on frequency but does not map words to semantic vector spaces; it sees 'refund' and 'reimbursement' as entirely separate entities.",
+        "Incorrect. Bag of Words simply counts occurrences of words, completely losing semantic context and word order.",
+        "Correct! Word2Vec is a neural network model that generates dense vector embeddings. Synonyms are mapped mathematically close to each other in vector space.",
+        "Incorrect. N-grams capture adjacent words to preserve some local context (e.g., 'not good'), but they do not capture deeper semantic synonyms."
+      ]
+    },
+    {
+      "question": "A data scientist applies a StandardScaler transformation to an entire customer dataset. Immediately afterward, the scientist randomly splits the dataset into training and testing sets. The model achieves 95% test accuracy but drops to 60% in production. What is the fundamental cause?",
+      "options": [
+        "The standard scaler is an inappropriate algorithm.",
+        "Data leakage occurred during the scaling process.",
+        "The model architecture is too simple.",
+        "The testing set was too small."
+      ],
+      "correct": 1,
+      "explanations": [
+        "Incorrect. StandardScaler is a perfectly standard and appropriate algorithm for normalizing continuous numeric features.",
+        "Correct! By scaling the *entire* dataset before splitting, the scaler 'leaked' the mathematical mean and variance of the testing data into the training data, invalidating the test results.",
+        "Incorrect. The drop in accuracy from test to production indicates the test was flawed (due to leakage), not necessarily that the model is too simple.",
+        "Incorrect. While a small test set can cause variance, a massive drop in production accuracy immediately following global scaling is the textbook definition of data leakage."
+      ]
+    },
+    {
+      "question": "A data engineer is analyzing daily inventory sales. The engineer needs to visually determine if sales from exactly seven days ago have a statistically significant relationship with the sales occurring today. Which EDA technique is explicitly designed to answer this?",
+      "options": [
+        "Autocorrelation Function (ACF).",
+        "Partial Dependence Plots (PDP).",
+        "Cross-correlation.",
+        "Pearson correlation matrix."
+      ],
+      "correct": 0,
+      "explanations": [
+        "Correct! The Autocorrelation Function (ACF) is a time-series technique used to find correlations between a current observation and its own past lags (e.g., exactly 7 days ago).",
+        "Incorrect. PDP is an explainability tool that shows the global effect of a feature on a model's prediction, not a time-series EDA tool.",
+        "Incorrect. Cross-correlation measures the relationship between two *different* time series (e.g., marketing spend vs. sales), not one series against its own past.",
+        "Incorrect. A Pearson matrix compares multiple different features against each other at a single point in time, not a feature against its own historical lags."
+      ]
+    },
+    {
+      "question": "A logistic regression model is being trained. One numeric feature, 'Age', has a strong non-linear relationship with risk (under 20 and over 70 have high risk; 21 to 69 have low risk). Since logistic regression assumes linear relationships, how can this feature be transformed?",
+      "options": [
+        "Discretize into categorical bins.",
+        "Apply a logarithmic transformation.",
+        "Standardize the feature to mean zero.",
+        "Apply a Min-Max Scaler."
+      ],
+      "correct": 0,
+      "explanations": [
+        "Correct! Discretization (binning) converts continuous Age into categories ('Young', 'Adult', 'Senior'). The linear model can then assign distinct, non-linear weights to each specific category.",
+        "Incorrect. A logarithmic transform compresses right-skewed data; it will not help a model interpret a U-shaped non-linear relationship.",
+        "Incorrect. Standardization scales the data but perfectly preserves the underlying U-shape, which the linear model will still fail to capture.",
+        "Incorrect. Min-Max scaling simply squashes the values between 0 and 1, preserving the exact same non-linear curve."
+      ]
+    },
+    {
+      "question": "A fraud dataset consists of 99.5% legitimate transactions and 0.5% fraudulent ones. Strict regulatory compliance forbids generating synthetic or artificial data points. Which strategy should be utilized to address the severe class imbalance?",
+      "options": [
+        "Apply SMOTE to the dataset.",
+        "Adjust the algorithm's class weights.",
+        "Apply an Isolation Forest.",
+        "Use Principle Component Analysis (PCA)."
+      ],
+      "correct": 1,
+      "explanations": [
+        "Incorrect. SMOTE (Synthetic Minority Over-sampling Technique) generates artificial data points, which is explicitly forbidden by the regulatory constraints in the prompt.",
+        "Correct! Adjusting class weights alters the model's loss function to heavily penalize errors made on the minority class, requiring zero data modification or synthetic generation.",
+        "Incorrect. Isolation Forest is an anomaly detection algorithm, not a data balancing technique for supervised classification models.",
+        "Incorrect. PCA is for dimensionality reduction, not for addressing target label class imbalance."
+      ]
+    },
+    {
+      "question": "A data science team utilizes Amazon SageMaker Clarify to evaluate a model's predictions. They need to measure the ratio of the positive prediction rate for an underprivileged group compared to a privileged group. Which post-training bias metric calculates this?",
+      "options": [
+        "Difference in Proportions of Labels (DPL).",
+        "Treatment Equality (TE).",
+        "Disparate Impact (DI).",
+        "Class Imbalance (CI)."
+      ],
+      "correct": 2,
+      "explanations": [
+        "Incorrect. DPL evaluates the historical *labels* in the dataset before training, not the model's actual *predictions*.",
+        "Incorrect. TE evaluates the ratio of false positives to false negatives (error rates) between groups, not the raw positive prediction rates.",
+        "Correct! Disparate Impact (DI) is a post-training metric that specifically compares the ratio of positive predictions between two demographic facets.",
+        "Incorrect. CI is a pre-training metric that simply checks if the dataset has more rows of data for one group than another."
+      ]
+    },
+    {
+      "question": "A dataset has missing temperature values because a sensor randomly failed due to cosmic rays. The missing data events have absolutely no relationship to the actual temperature, nor are they related to humidity or time of day. How is this missing data categorized?",
+      "options": [
+        "Missing Completely at Random (MCAR).",
+        "Missing at Random (MAR).",
+        "Missing Not at Random (MNAR).",
+        "Last Observation Carried Forward (LOCF)."
+      ],
+      "correct": 0,
+      "explanations": [
+        "Correct! When missing data is entirely independent of both observed variables and unobserved variables, it is Missing Completely at Random (MCAR).",
+        "Incorrect. MAR means the missingness is related to *other observed features* (e.g., missing temperature happens only when recorded humidity is high).",
+        "Incorrect. MNAR means the missingness is related to the *unobserved value itself* (e.g., the sensor specifically shorts out when the temperature exceeds 100 degrees).",
+        "Incorrect. LOCF is an imputation *technique* for filling in missing time-series data, not a *category* of missing data mechanism."
+      ]
+    },
+    {
+      "question": "A company runs an A/B test. Group A experiences the old layout, and Group B experiences the new layout. A data scientist needs to determine if the difference in the average session duration between the two independent groups is statistically significant. Which test must be used?",
+      "options": [
+        "Chi-square test.",
+        "Two-sample T-test.",
+        "ANOVA.",
+        "Spearman correlation."
+      ],
+      "correct": 1,
+      "explanations": [
+        "Incorrect. The Chi-square test is used for comparing relationships between two *categorical* variables (e.g., layout vs. clicked/did-not-click), not continuous numeric means.",
+        "Correct! The Two-sample T-test is explicitly designed to compare the continuous means (averages) of two independent groups to see if they differ significantly.",
+        "Incorrect. ANOVA (Analysis of Variance) is used when comparing the means of *three or more* independent groups, not just two.",
+        "Incorrect. Spearman evaluates the correlation between two numeric variables within a single group, not the difference in averages between two separate groups."
+      ]
+    },
+    {
+      "question": "An NLP engineer is given an entirely unlabelled dataset of 100,000 raw news articles. The objective is to perform exploratory data analysis to automatically discover underlying abstract themes (e.g., politics, sports) across the corpus. Which algorithm is best?",
+      "options": [
+        "Latent Dirichlet Allocation (LDA).",
+        "Principal Component Analysis (PCA).",
+        "t-Distributed Stochastic Neighbor Embedding (t-SNE).",
+        "Support Vector Machine (SVM)."
+      ],
+      "correct": 0,
+      "explanations": [
+        "Correct! Latent Dirichlet Allocation (LDA) is an unsupervised machine learning algorithm explicitly designed for topic modeling across large sets of unlabelled text documents.",
+        "Incorrect. PCA is for dimensionality reduction of numeric data, not specifically designed to cluster word distributions into human-readable topics.",
+        "Incorrect. t-SNE is used for 2D/3D visual clustering of dense numerical vectors, not directly for discovering abstract thematic topics in text corpora.",
+        "Incorrect. SVM is a supervised learning algorithm requiring a labeled dataset, but the scenario specifies an unlabelled dataset."
+      ]
+    },
+    {
+      "question": "A machine learning engineer wants to visualize how varying a feature alters the model's prediction. Instead of viewing the average global effect, the engineer needs to plot multiple individual lines visualizing this relationship for distinct data points. Which tool generates this?",
+      "options": [
+        "Individual Conditional Expectation (ICE).",
+        "Partial Dependence Plots (PDP).",
+        "Shapley Additive Explanations (SHAP).",
+        "Confusion Matrix."
+      ],
+      "correct": 0,
+      "explanations": [
+        "Correct! ICE plots generate a separate, distinct line for each individual data instance, visualizing how the prediction changes for that specific row as a feature varies.",
+        "Incorrect. PDPs calculate the exact same underlying data as ICE plots, but average them out into a single line showing the global average effect.",
+        "Incorrect. SHAP provides a localized attribution score (e.g., Feature A contributed +0.5 to the score), it does not plot continuous relationship lines across varying feature values.",
+        "Incorrect. A Confusion Matrix evaluates the classification accuracy of a model (True Positives, False Positives, etc.), it does not visualize feature-prediction relationships."
+      ]
+    }
+  ]
+}

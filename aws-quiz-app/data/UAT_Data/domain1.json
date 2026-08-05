@@ -1,0 +1,417 @@
+{
+  "tutorialData": {
+    "title": "Domain 1: Data Engineering",
+    "lead": "This domain makes up 20% of the AWS ML Specialty exam. It focuses on how to get data into AWS, how to clean and transform it, and how to format it specifically for machine learning models without introducing bias or data leakage.",
+    "sections": [
+      {
+        "title": "1. Data Ingestion & Migration",
+        "themeColor": "orange-500",
+        "items": [
+          {
+            "term": "Key Services Overview",
+            "blocks": [
+              {
+                "type": "card",
+                "bullets": [
+                  "**Kinesis Data Streams:** Used for **real-time** custom processing of streaming data. If the exam mentions ProvisionedThroughputExceededException, the solution is always to **increase the number of shards**.",
+                  "**Kinesis Data Firehose:** Used for **near real-time** delivery. It requires zero custom code. If the requirement is to buffer incoming data for 60 seconds, compress it, convert it to Apache Parquet, and dump it into S3, **Firehose** is the exact tool.",
+                  "**Kinesis Data Analytics:** Used to run real-time SQL queries on streaming data (e.g., calculating a sliding 5-minute average).",
+                  "**AWS Snowmobile / Snowball:** Use the physical Snow family to migrate massive amounts of data (Petabytes) from an on-premises data center with a slow internet connection."
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "title": "2. Data Storage, Security, & Networking",
+        "themeColor": "blue-500",
+        "items": [
+          {
+            "term": "Storage and Security Essentials",
+            "blocks": [
+              {
+                "type": "card",
+                "bullets": [
+                  "**Apache Parquet vs. CSV:** Parquet is a **columnar storage format**. It is significantly faster and cheaper to query using tools like Amazon Athena because you only scan the columns you need.",
+                  "**S3 Partitioning:** If Athena queries on S3 are taking too long and costing too much, you must **partition the data** (e.g., by year/month/day) so Athena limits its scan scope.",
+                  "**Amazon Macie:** A fully managed ML-powered security service that automatically discovers and protects sensitive data (like PII, SSNs) inside S3 buckets."
+                ]
+              },
+              {
+                "type": "callout",
+                "title": "Crucial Exam Trap: VPC Endpoints",
+                "items": [
+                  "If your SageMaker instance needs to access S3 in the **same region** privately, use a **Gateway VPC Endpoint**.",
+                  "If the S3 bucket is in a **different region**, or accessed from on-premises, you MUST use an **Interface VPC Endpoint (AWS PrivateLink)**."
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "title": "3. Feature Engineering & Preparation",
+        "themeColor": "emerald-500",
+        "items": [
+          {
+            "term": "Handling Messy Data",
+            "blocks": [
+              {
+                "type": "card",
+                "bullets": [
+                  "**Median Imputation:** Takes the middle value. Use this when the dataset **contains extreme outliers** (e.g., billionaires in a dataset).",
+                  "**Forward-Fill (Interpolation):** Use this for IoT or time-series data. If a sensor drops out for 3 minutes, carry the last known temperature forward.",
+                  "**Scaling Leakage Trap:** You MUST split your dataset into Train/Test *before* applying the scaler. Fit the scaler on the Train set only, then transform both.",
+                  "**High Cardinality:** If a categorical feature has tens of thousands of unique values (like Zip Codes), One-Hot Encoding will crash your memory. Use **Feature Hashing** or Target Encoding.",
+                  "**Time-Series Splitting:** If the data has chronological significance, you **cannot** use a random split. You MUST use an **Ordered Split** to prevent predicting the past using future data."
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "title": "4. SageMaker Specifics for Data",
+        "themeColor": "purple-500",
+        "items": [
+          {
+            "term": "Native AWS Tools",
+            "blocks": [
+              {
+                "type": "card",
+                "bullets": [
+                  "**SageMaker Feature Store:** To serve real-time predictions while keeping a historical log for future training, enable **both online and offline stores**.",
+                  "**SageMaker Ground Truth:** To save immense amounts of time and money on human workers when labeling massive datasets, enable **Automated Data Labeling**.",
+                  "**Training Input Modes:** Use **Pipe Mode** to stream massive datasets directly from S3. Built-in algorithms operate most efficiently when data is formatted as **RecordIO-Protobuf**."
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "quizData": [
+    {
+      "question": "An ML engineer is preparing a dataset to predict equipment failure based on temperature logs recorded every minute over the past three years. The engineer needs to split this dataset into training, validation, and testing sets within SageMaker Data Wrangler. Which splitting strategy is required to prevent data leakage?",
+      "options": [
+        "Apply a random split transform.",
+        "Apply an ordered split transform.",
+        "Apply a stratified split based on failure events.",
+        "Apply a K-Fold cross-validation split."
+      ],
+      "correct": 1,
+      "explanations": [
+        "Incorrect. A random split will mix future data points into the training set, allowing the model to peek into the future, causing data leakage in time-series scenarios.",
+        "Correct! Time-series data requires an ordered split (chronological) to ensure the model is trained on past data and evaluated strictly on future, unseen data.",
+        "Incorrect. While stratified splits maintain class distribution, they still randomly shuffle the temporal order, resulting in future-data leakage.",
+        "Incorrect. Standard K-Fold randomizes and partitions data without respecting chronological boundaries."
+      ]
+    },
+    {
+      "question": "A data scientist is training an XGBoost model using the Amazon SageMaker built-in algorithm. The training dataset is 500 GB and resides in Amazon S3. The training instance only has 64 GB of memory. What is the most efficient way to stream this data into the training algorithm?",
+      "options": [
+        "Configure the training job to use File mode with CSV.",
+        "Configure the training job to use Pipe mode with CSV formatting.",
+        "Configure the training job to use Pipe mode with RecordIO-Protobuf formatting.",
+        "Configure the training job to use FastFile mode with JSON."
+      ],
+      "correct": 2,
+      "explanations": [
+        "Incorrect. File mode attempts to download the entire 500GB dataset to the EBS volume before training begins, which is slow and requires excessive disk space.",
+        "Incorrect. While Pipe mode is correct for streaming, CSV is less optimal than RecordIO-Protobuf for built-in SageMaker algorithms.",
+        "Correct! Pipe mode streams data directly from S3 into memory, and RecordIO-Protobuf is the optimized format for SageMaker's built-in algorithms.",
+        "Incorrect. JSON is a highly inefficient format for streaming large-scale ML training data."
+      ]
+    },
+    {
+      "question": "A financial institution is building a model to detect fraudulent transactions. The raw dataset contains 10 million transactions, but only 5,000 are labeled as fraudulent. The baseline model predicts all transactions as non-fraudulent, achieving 99.95% accuracy but a 0% recall for fraud. Which data preparation technique should be applied?",
+      "options": [
+        "Downsample the majority class to 5,000 records.",
+        "Apply SMOTE to the minority class.",
+        "Generate synthetic data using PCA.",
+        "Change the loss function to Mean Squared Error."
+      ],
+      "correct": 1,
+      "explanations": [
+        "Incorrect. Downsampling from 10 million to 5,000 discards an enormous amount of valuable historical transaction behavior.",
+        "Correct! SMOTE (Synthetic Minority Over-sampling Technique) generates realistic synthetic samples for the minority class to handle severe class imbalance without losing majority data.",
+        "Incorrect. PCA is used for dimensionality reduction, not generating synthetic instances for class imbalance.",
+        "Incorrect. MSE is a regression loss function, not suitable for binary classification of fraud."
+      ]
+    },
+    {
+      "question": "A company is collecting clickstream data from millions of users globally. The data engineering team requires a fully managed solution that buffers the incoming stream for a minimum of 60 seconds, compresses it into Apache Parquet format, and delivers it to an Amazon S3 data lake. Which service meets these exact requirements with minimal operational overhead?",
+      "options": [
+        "Amazon Kinesis Data Streams",
+        "Amazon Kinesis Data Analytics",
+        "AWS Glue DataBrew",
+        "Amazon Kinesis Data Firehose"
+      ],
+      "correct": 3,
+      "explanations": [
+        "Incorrect. Kinesis Data Streams requires custom consumer code (like a Lambda or EC2 application) to read, compress, and deliver the data.",
+        "Incorrect. Data Analytics is used for real-time SQL querying on streams, not direct buffering and delivery to S3.",
+        "Incorrect. Glue DataBrew is a visual data preparation tool for static datasets, not a real-time streaming ingestion service.",
+        "Correct! Kinesis Data Firehose natively handles buffering, format conversion (to Parquet), and delivery to S3 with zero custom code."
+      ]
+    },
+    {
+      "question": "A data scientist is preparing a dataset that includes a 'Zip Code' feature. The dataset spans the entire United States, resulting in over 40,000 unique zip codes. The team is concerned about memory limits during training if the dataset becomes too wide. Which encoding strategy is most appropriate?",
+      "options": [
+        "Utilize a feature hashing technique.",
+        "Utilize a label binarizer technique.",
+        "Apply standard One-Hot Encoding.",
+        "Use Ordinal Encoding alphabetically."
+      ],
+      "correct": 0,
+      "explanations": [
+        "Correct! Feature Hashing (or Target Encoding) manages high-cardinality features by mapping them to a fixed-size vector, preventing memory explosion.",
+        "Incorrect. Label Binarizer essentially performs one-hot encoding, creating the same massive, sparse, memory-crashing matrix.",
+        "Incorrect. One-Hot Encoding 40,000 categories adds 40,000 new columns to the dataset, resulting in a sparse matrix that will likely crash memory limits.",
+        "Incorrect. Ordinal encoding assumes a mathematical hierarchy (e.g. Zip A is 'less than' Zip B), which destroys the categorical integrity of zip codes."
+      ]
+    },
+    {
+      "question": "A machine learning pipeline relies on an Amazon EC2 instance residing in a private subnet in the us-west-2 region. The EC2 instance must download secure, encrypted training data from an Amazon S3 bucket located in the us-east-1 region. Traffic must strictly avoid the public internet. Which networking setup fulfills this mandate?",
+      "options": [
+        "Deploy a Gateway VPC endpoint.",
+        "Deploy an Interface VPC endpoint.",
+        "Enable direct internet access via NAT Gateway.",
+        "Use AWS Direct Connect."
+      ],
+      "correct": 1,
+      "explanations": [
+        "Incorrect. Gateway VPC Endpoints are only valid for accessing S3 buckets in the SAME region as the VPC.",
+        "Correct! Cross-region private S3 access requires an Interface VPC Endpoint (powered by AWS PrivateLink) to keep traffic off the public internet.",
+        "Incorrect. A NAT Gateway routes traffic over the public internet, violating the strict security mandate.",
+        "Incorrect. Direct Connect links an on-premises data center to AWS, it does not route traffic between AWS regions natively."
+      ]
+    },
+    {
+      "question": "An IoT dataset records industrial boiler temperatures every second. Due to a temporary sensor failure, there is a 3-minute gap of missing data. The temperature of the boiler changes very slowly over time. Which imputation strategy is most mathematically sound for this specific gap?",
+      "options": [
+        "Replace with the mean temperature of the entire dataset.",
+        "Replace with zero.",
+        "Execute a forward-fill interpolation.",
+        "Use median imputation."
+      ],
+      "correct": 2,
+      "explanations": [
+        "Incorrect. The global mean ignores the localized temporal context of the boiler's temperature right before the outage.",
+        "Incorrect. Replacing with zero would falsely indicate the boiler completely froze instantly, ruining the model's understanding.",
+        "Correct! For slowly changing time-series data, carrying the last known value forward (forward-fill) provides the most realistic estimate for a short gap.",
+        "Incorrect. The global median, like the mean, ignores the local context of the specific time window."
+      ]
+    },
+    {
+      "question": "A data engineer has dropped thousands of Apache Parquet files into a complex S3 folder structure. The engineer needs to discover the underlying schema, partition keys, and column data types automatically so the data can be queried using Amazon Athena. Which AWS service should be used?",
+      "options": [
+        "Run a SageMaker Processing Job.",
+        "Run an AWS Glue Crawler.",
+        "Use Amazon Athena Schema Discovery.",
+        "Use Amazon Macie."
+      ],
+      "correct": 1,
+      "explanations": [
+        "Incorrect. SageMaker Processing requires writing custom PySpark or Pandas code to infer schemas, which is manual and inefficient here.",
+        "Correct! AWS Glue Crawlers automatically scan S3, discover schemas, and populate the Glue Data Catalog required for Athena querying.",
+        "Incorrect. Athena does not have an automatic 'Schema Discovery' feature; it relies on the Glue Data Catalog.",
+        "Incorrect. Macie is used for discovering sensitive PII data, not mapping tabular schemas."
+      ]
+    },
+    {
+      "question": "A retail company is utilizing Amazon SageMaker Feature Store. The machine learning team needs to serve features to an active production endpoint with single-digit millisecond latency for real-time recommendation generation, while simultaneously retaining a historical log of all feature values to train future models. How should the feature group be configured?",
+      "options": [
+        "Enable only the online store and backup to RDS.",
+        "Enable both online and offline stores.",
+        "Use only the offline store with Athena.",
+        "Configure an ElastiCache Redis cluster."
+      ],
+      "correct": 1,
+      "explanations": [
+        "Incorrect. Backing up to RDS requires custom engineering. SageMaker Feature Store has a native mechanism for this.",
+        "Correct! The online store provides single-digit millisecond latency for inference, while the offline store automatically retains historical records in S3 for training.",
+        "Incorrect. The offline store (S3) is highly durable but too slow for single-digit millisecond real-time inference.",
+        "Incorrect. While Redis is fast, configuring and maintaining a custom cluster defeats the purpose of using the managed SageMaker Feature Store."
+      ]
+    },
+    {
+      "question": "An NLP engineer is converting a massive corpus of text documents into numerical vectors for a classification model. The engineer specifically needs to heavily penalize incredibly common words (like 'the', 'and', 'is') while assigning high weights to rare, document-specific keywords. Which technique achieves this?",
+      "options": [
+        "Apply Bag of Words vectorization.",
+        "Apply TF-IDF vectorization.",
+        "Apply Word2Vec embeddings.",
+        "Apply N-gram counting."
+      ],
+      "correct": 1,
+      "explanations": [
+        "Incorrect. Bag of Words strictly counts frequency, meaning 'the' would have the highest weight, violating the requirement.",
+        "Correct! Term Frequency-Inverse Document Frequency (TF-IDF) naturally penalizes common words across the corpus and highlights unique, document-specific keywords.",
+        "Incorrect. Word2Vec captures semantic meaning (synonyms) but does not inherently penalize raw frequency like TF-IDF does.",
+        "Incorrect. N-grams capture adjacent word pairs but still suffer from the frequency bias of common words."
+      ]
+    },
+    {
+      "question": "A compliance team suspects that millions of historical text files stored in an Amazon S3 data lake contain unredacted Social Security Numbers and credit card details. The team requires a fully managed AWS solution to actively discover and classify this sensitive data at scale. Which service is appropriate?",
+      "options": [
+        "Run a regex script in AWS Lambda.",
+        "Use AWS Shield Advanced.",
+        "Configure Amazon Macie for the bucket.",
+        "Use AWS WAF."
+      ],
+      "correct": 2,
+      "explanations": [
+        "Incorrect. Writing custom regex scripts in Lambda to scan millions of files is not 'fully managed' and incurs massive operational overhead.",
+        "Incorrect. AWS Shield Advanced protects against DDoS attacks, not data privacy classification.",
+        "Correct! Amazon Macie is a fully managed ML-powered service specifically designed to automatically discover and classify sensitive PII data in S3.",
+        "Incorrect. AWS WAF is a web application firewall for HTTP traffic, not an S3 file scanner."
+      ]
+    },
+    {
+      "question": "An analytics application ingests real-time web logs using Amazon Kinesis Data Streams. During a major promotional event, the incoming data volume abruptly triples. The consumer application starts logging `ProvisionedThroughputExceededException` errors. How should the ML engineer resolve this?",
+      "options": [
+        "Decrease the number of shards.",
+        "Change the partition key.",
+        "Increase the number of shards.",
+        "Compress the payload using GZIP."
+      ],
+      "correct": 2,
+      "explanations": [
+        "Incorrect. Decreasing shards reduces capacity, which will exacerbate the throughput exception.",
+        "Incorrect. Changing the partition key helps with uneven data distribution (hot shards), but not an overall tripling of global volume.",
+        "Correct! ProvisionedThroughputExceededException in Kinesis Data Streams requires you to scale up overall capacity by increasing the number of shards.",
+        "Incorrect. While compression reduces size, the underlying solution for a throughput exception at the stream level is sharding."
+      ]
+    },
+    {
+      "question": "A data scientist is preprocessing a dataset containing financial transaction amounts. The vast majority of transactions are under $100, but a few rare corporate transfers exceed $10,000,000. The model requires the features to be scaled, but standardizing the data shrinks all normal transactions into an incredibly narrow, indistinguishable range due to the massive outliers. Which scaling method should be applied?",
+      "options": [
+        "Apply StandardScaler to the data.",
+        "Apply MinMaxScaler to the data.",
+        "Apply Logarithmic Transformation.",
+        "Apply Robust Scaler to the data."
+      ],
+      "correct": 3,
+      "explanations": [
+        "Incorrect. StandardScaler uses the mean and variance, which are heavily skewed by the $10M outliers, squashing the normal data.",
+        "Incorrect. MinMaxScaler squashes everything between 0 and 1, meaning normal data will be clustered indistinguishably around 0.0001.",
+        "Incorrect. While a log transform helps with skewness, if the strict requirement is a *scaling* algorithm that ignores outliers, RobustScaler is preferred.",
+        "Correct! RobustScaler specifically handles massive outliers by scaling using statistics that are robust to outliers (medians and interquartile ranges)."
+      ]
+    },
+    {
+      "question": "A machine learning pipeline is designed so that every time a new CSV file is uploaded to a specific Amazon S3 bucket, a SageMaker Processing Job must execute a Python script to transform the data. What is the most architecturally efficient way, requiring minimal custom code, to trigger this job?",
+      "options": [
+        "Configure S3 Event Notifications to trigger Step Functions.",
+        "Configure S3 Event Notifications to trigger Lambda.",
+        "Poll the S3 bucket using an EC2 instance.",
+        "Use AWS CloudTrail to trigger AWS Batch."
+      ],
+      "correct": 1,
+      "explanations": [
+        "Incorrect. S3 Event Notifications CANNOT natively trigger AWS Step Functions directly. (EventBridge is required for that).",
+        "Correct! S3 Event Notifications directly triggering a Lambda function (which then starts the SageMaker job) is the standard minimal-overhead pattern.",
+        "Incorrect. Polling S3 with EC2 is highly inefficient, requires custom code, and wastes compute resources.",
+        "Incorrect. CloudTrail is for API logging. While it can trigger events, S3 Event Notifications are the direct, intended mechanism."
+      ]
+    },
+    {
+      "question": "A hospital network has an on-premises data center containing 100 Petabytes of historical high-resolution medical imaging data. They must migrate this data to Amazon S3 to train a new computer vision model. Their corporate internet connection has very limited bandwidth and cannot support heavy outbound data transfers. Which migration solution is required?",
+      "options": [
+        "Order and use AWS Snowball Edge.",
+        "Use AWS DataSync over VPN.",
+        "Order and use AWS Snowmobile.",
+        "Setup AWS Direct Connect."
+      ],
+      "correct": 2,
+      "explanations": [
+        "Incorrect. Snowball Edge devices hold up to 80TB. Migrating 100 PB would require over 1,200 individual devices, which is impractical.",
+        "Incorrect. DataSync over VPN utilizes the corporate internet connection, which the prompt states cannot support the transfer.",
+        "Correct! For massive multi-petabyte (100PB) offline transfers, AWS Snowmobile (an actual secure truck) is the required physical solution.",
+        "Incorrect. Setting up Direct Connect takes months and immense capital, while a physical migration is much faster for a one-time 100PB move."
+      ]
+    },
+    {
+      "question": "A team is iterating on an existing machine learning model and realizes they need to add a newly engineered feature, 'customer_lifetime_value', to their primary SageMaker Feature Group. The team must retain all historical records currently stored in the group. How should they safely modify the schema?",
+      "options": [
+        "Use the UpdateFeatureGroup API.",
+        "Create a new Feature Group and migrate data.",
+        "Use the PutRecord API.",
+        "Delete and recreate the Feature Group."
+      ],
+      "correct": 0,
+      "explanations": [
+        "Correct! The UpdateFeatureGroup API allows you to safely append new features (columns) to an existing Feature Group without losing historical data.",
+        "Incorrect. Creating a new group and migrating data is unnecessary operational overhead when the native API exists.",
+        "Incorrect. PutRecord adds data to *existing* features, it does not alter the schema to add a new feature column.",
+        "Incorrect. Deleting the group would permanently destroy all historical training data."
+      ]
+    },
+    {
+      "question": "A company receives thousands of scanned, unstructured PDF invoices daily. An ML engineer is tasked with building a pipeline that extracts the raw text, as well as preserving the structural relationship of the data within the tables and forms, so it can be fed into an NLP model. Which service provides the least operational overhead?",
+      "options": [
+        "Utilize Amazon Rekognition.",
+        "Utilize Amazon Textract.",
+        "Use Tesseract OCR on EC2.",
+        "Use Amazon Comprehend."
+      ],
+      "correct": 1,
+      "explanations": [
+        "Incorrect. Rekognition is for general image analysis (faces, objects, scenes), not specifically for document structural extraction.",
+        "Correct! Amazon Textract is purpose-built to extract text, handwriting, AND preserve structural data (like tables/forms) from scanned documents.",
+        "Incorrect. Tesseract on EC2 requires managing servers and custom logic to reconstruct table structures, resulting in high overhead.",
+        "Incorrect. Comprehend extracts sentiment and entities from raw text; it cannot read scanned PDF images."
+      ]
+    },
+    {
+      "question": "Data scientists are querying a massive dataset of application logs stored in S3 using Amazon Athena. Currently, queries are taking over ten minutes to execute, and the team is being billed for scanning terabytes of data, even when querying a single day's worth of logs. What is the most effective data engineering strategy to reduce both query time and cost?",
+      "options": [
+        "Increase Athena Provisioned Capacity.",
+        "Implement S3 data partitioning.",
+        "Convert data to CSV format.",
+        "Move the data to Amazon Redshift."
+      ],
+      "correct": 1,
+      "explanations": [
+        "Incorrect. Increasing capacity might speed up the query, but it will not reduce the cost of scanning unnecessary terabytes of data.",
+        "Correct! Partitioning S3 data (e.g., by year/month/day) restricts Athena to scan only the necessary folders, drastically reducing both execution time and cost.",
+        "Incorrect. CSV is less efficient than columnar formats like Parquet. Converting to CSV would make things worse.",
+        "Incorrect. While Redshift is fast, partitioning data in S3 directly solves the Athena issue with much less architectural change."
+      ]
+    },
+    {
+      "question": "A data engineer is migrating historical training datasets from CSV format to Apache Parquet. The primary motivation is to optimize the data for complex aggregation queries run by data scientists in Amazon Athena. Why does Apache Parquet provide a significant performance advantage over CSV in this scenario?",
+      "options": [
+        "Parquet is a row-based format.",
+        "Parquet supports uncompressed text out of the box.",
+        "Parquet utilizes columnar storage.",
+        "Parquet integrates directly with Lambda without S3."
+      ],
+      "correct": 2,
+      "explanations": [
+        "Incorrect. CSV is a row-based format, which is exactly why it is inefficient for analytics queries that only need specific features.",
+        "Incorrect. Parquet is highly compressed, not uncompressed.",
+        "Correct! Parquet is a columnar storage format, allowing Athena to scan only the specific columns needed for a query, bypassing irrelevant data entirely.",
+        "Incorrect. All file formats require storage (like S3) to be accessed by Lambda."
+      ]
+    },
+    {
+      "question": "A startup is building a computer vision model to detect defects in solar panels. They have an Amazon S3 bucket containing 500,000 raw, unlabelled drone images. They are creating an Amazon SageMaker Ground Truth job and need to significantly minimize the financial cost and time spent relying on human workers. What feature should they leverage?",
+      "options": [
+        "Use Amazon Mechanical Turk exclusively.",
+        "Enable automated data labeling.",
+        "Hire a private workforce.",
+        "Use an unsupervised clustering algorithm."
+      ],
+      "correct": 1,
+      "explanations": [
+        "Incorrect. Using human workers exclusively for 500,000 images will take months and cost a fortune.",
+        "Correct! Automated Data Labeling uses an active learning ML model to label the 'easy' images automatically, only sending the difficult edge cases to human workers.",
+        "Incorrect. A private workforce is the most expensive and slowest option available.",
+        "Incorrect. Unsupervised clustering groups similar images, but does not apply the strict bounding boxes or classifications required for defect detection."
+      ]
+    }
+  ]
+}
