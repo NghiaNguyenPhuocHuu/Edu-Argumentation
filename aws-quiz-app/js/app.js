@@ -377,7 +377,6 @@ function renderTutorial() {
                         } else if (block.type === 'card') {
                             const cardDiv = document.createElement('div');
                             
-                            // Visual separation logic based on variant
                             if (block.variant === 'example') {
                                 cardDiv.className = `my-6 p-7 rounded-2xl bg-slate-900 border-l-8 border-${theme} shadow-xl relative overflow-hidden`;
                             } else {
@@ -444,7 +443,8 @@ function renderTutorial() {
 
 function formatText(text) {
     if (!text) return '';
-    let formatted = text.replace(/\s+(\d+\.\s)/g, '<br><br>$1');
+    // FIXED: Catch numbers even if they are mashed against the previous word's punctuation
+    let formatted = text.replace(/([^\s>])\s*(\d+\.\s)/g, '$1<br><br>$2');
     formatted = formatted.replace(/\n/g, '<br>');
     return formatted;
 }
@@ -477,7 +477,8 @@ function loadQuestion() {
         
         const letter = String.fromCharCode(65 + index);
         letterSpan.textContent = letter;
-        textSpan.textContent = optionText;
+        // FIXED: Apply formatText and inject via innerHTML so <br> tags actually render
+        textSpan.innerHTML = formatText(optionText);
         
         btn.addEventListener('click', () => handleAnswerSelect(index, btn));
         dom.optionsContainer.appendChild(optionClone);
