@@ -2,6 +2,10 @@
 
 const fs = require('fs/promises');
 const path = require('path');
+const pdfParseModule = require('pdf-parse');
+const mammoth = require('mammoth');
+const Tesseract = require('tesseract.js');
+const pdfImgConvert = require('pdf-img-convert');
 
 function parseArgs(argv) {
     const options = {
@@ -334,6 +338,30 @@ async function generateChunkModule({ apiKey, bookTitle, chunkText, questionCount
         }
     }
 }
+async function parsePdfBuffer(dataBuffer) {
+    // pdf-parse v2 (Class-based)
+    if (pdfParseModule.PDFParse) {
+        const parser = new pdfParseModule.PDFParse({ data: dataBuffer });
+        const textResult = await parser.getText();
+        let numpages = textResult?.total || 1;
+        try {
+            const info = await parser.getInfo({ parsePageInfo: true });
+            numpages = info?.pages || numpages;
+        } catch (_) {}
+        if (typeof parser.destroy === 'function') await parser.destroy();
+        return { text: textResult?.text || '', numpages };
+    }
+    // pdf-parse v1 (Function-based)
+    if (typeof pdfParseModule === 'function') {
+        const data = await pdfParseModule(dataBuffer);
+        return { text: data.text || '', numpages: data.numpages || 1 };
+    }
+    if (typeof pdfParseModule.default === 'function') {
+        const data = await pdfParseModule.default(dataBuffer);
+        return { text: data.text || '', numpages: data.numpages || 1 };
+    }
+    throw new Error('Unsupported pdf-parse export format.');
+}
 
 async function main() {
     const args = parseArgs(process.argv.slice(2));
@@ -347,10 +375,43 @@ async function main() {
     if (!apiKey) {
         throw new Error('Set GEMINI_API_KEY in your environment before running the generator.');
     }
-
+ 
     const inputPath = path.resolve(args.input);
-    const rawText = await fs.readFile(inputPath, 'utf8');
-    const bookTitle = args.title || path.basename(inputPath, path.extname(inputPath));
+    const ext = path.extname(inputPath).toLowerCase();
+    let rawText = '';
+
+    // Extract text based on file type
+    // Extract text based on file type
+    if (ext === '.pdf') {
+        const dataBuffer = await fs.readFile(inputPath);
+        const pdfData = await parsePdfBuffer(dataBuffer);
+        rawText = pdfData.text;
+
+        // Smart Fallback: If text is suspiciously short for the number of pages, run OCR
+        if (rawText.trim().length < pdfData.numpages * 50) {
+            console.log('PDF appears to be scanned. Initiating OCR (this may take a while)...');
+            rawText = '';
+            const pdfImages = await pdfImgConvert.convert(inputPath);
+            
+            for (let i = 0; i < pdfImages.length; i++) {
+                console.log(`Running OCR on page ${i + 1} of ${pdfImages.length}...`);
+                const imageBuffer = Buffer.from(pdfImages[i]);
+                const { data: { text } } = await Tesseract.recognize(imageBuffer, 'eng');
+                rawText += text + '\n\n';
+            }
+            console.log('OCR Complete.');
+        }
+    } else if (ext === '.docx') {
+        console.log('Extracting text from Word Document...');
+        const result = await mammoth.extractRawText({ path: inputPath });
+        rawText = result.value;
+    } else if (ext === '.txt' || ext === '.md') {
+        rawText = await fs.readFile(inputPath, 'utf8');
+    } else {
+        throw new Error('Unsupported file type. Please provide a .txt, .md, .pdf, or .docx file.');
+    }
+
+    const bookTitle = args.title || path.basename(inputPath, ext);
     const trimmedText = rawText.replace(/\r\n/g, '\n').trim();
 
     if (!trimmedText) {

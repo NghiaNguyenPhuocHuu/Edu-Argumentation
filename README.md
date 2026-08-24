@@ -6,7 +6,7 @@ The same JSON format can also be generated from longer source material such as b
 
 ### Core Components
 
-* **Static Data Layer (`/data/courseData.json` & `testModule.json`)**: Contains structured course modules, questions, options, and explanations.
+* **Static Data Layer (`/data/courseData.json` & `  testModule.json`)**: Contains structured course modules, questions, options, and explanations.
 * **Front-End Interface (`index.html` & `js/app.js`)**: Built utilizing pure JavaScript, HTML5, and CSS without heavy framework overhead (avoiding React, opting for clean DOM management).
 * **AI Worker / Integration (`js/ai-worker.js` & `test_gemini.js`)**: Offloads background processing or handles dynamic generation of similar but different questions based on the context of the tutorial and static practice.
 * **Book-to-Questions CLI (`book_to_questions.js`)**: Accepts a text book or chapter excerpt and generates the same `tutorialData` + `quizData` structure used by the web app.
