@@ -363,36 +363,20 @@ async function parsePdfBuffer(dataBuffer) {
     throw new Error('Unsupported pdf-parse export format.');
 }
 
-async function main() {
-    const args = parseArgs(process.argv.slice(2));
-
-    if (!args.input) {
-        console.error('Usage: node book_to_questions.js --input <book.txt> [--output <module.json>] [--title <book title>] [--questions 10]');
-        process.exit(1);
-    }
-
-    const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) {
-        throw new Error('Set GEMINI_API_KEY in your environment before running the generator.');
-    }
- 
-    const inputPath = path.resolve(args.input);
+async function readSourceFile(inputPath) {
     const ext = path.extname(inputPath).toLowerCase();
     let rawText = '';
 
-    // Extract text based on file type
-    // Extract text based on file type
     if (ext === '.pdf') {
         const dataBuffer = await fs.readFile(inputPath);
         const pdfData = await parsePdfBuffer(dataBuffer);
         rawText = pdfData.text;
 
-        // Smart Fallback: If text is suspiciously short for the number of pages, run OCR
         if (rawText.trim().length < pdfData.numpages * 50) {
             console.log('PDF appears to be scanned. Initiating OCR (this may take a while)...');
             rawText = '';
             const pdfImages = await pdfImgConvert.convert(inputPath);
-            
+
             for (let i = 0; i < pdfImages.length; i++) {
                 console.log(`Running OCR on page ${i + 1} of ${pdfImages.length}...`);
                 const imageBuffer = Buffer.from(pdfImages[i]);
@@ -411,19 +395,28 @@ async function main() {
         throw new Error('Unsupported file type. Please provide a .txt, .md, .pdf, or .docx file.');
     }
 
-    const bookTitle = args.title || path.basename(inputPath, ext);
     const trimmedText = rawText.replace(/\r\n/g, '\n').trim();
-
     if (!trimmedText) {
         throw new Error('Input file is empty after trimming.');
+    }
+
+    return trimmedText;
+}
+
+async function buildModuleFromInput({ inputPath, title, questions = 10, maxChars = 60000, requestTimeoutMs = 120000, retries = 3, apiKey }) {
+    if (!apiKey) {
+        throw new Error('Set GEMINI_API_KEY in your environment before running the generator.');
     }
 
     if (typeof fetch !== 'function') {
         throw new Error('This script requires a Node.js runtime with global fetch support.');
     }
 
-    const chunks = splitTextIntoChunks(trimmedText, Math.max(1000, args.maxChars));
-    const questionDistribution = distributeQuestions(args.questions, chunks.length);
+    const resolvedInputPath = path.resolve(inputPath);
+    const sourceText = await readSourceFile(resolvedInputPath);
+    const bookTitle = title || path.basename(resolvedInputPath, path.extname(resolvedInputPath));
+    const chunks = splitTextIntoChunks(sourceText, Math.max(1000, maxChars));
+    const questionDistribution = distributeQuestions(questions, chunks.length);
     const chunkModules = [];
 
     for (let index = 0; index < chunks.length; index++) {
@@ -434,14 +427,35 @@ async function main() {
             questionCount: questionDistribution[index],
             chunkIndex: index,
             chunkCount: chunks.length,
-            requestTimeoutMs: args.requestTimeoutMs,
-            retries: Math.max(1, args.retries)
+            requestTimeoutMs,
+            retries: Math.max(1, retries)
         });
         chunkModules.push(moduleData);
     }
 
     const mergedModule = mergeModules(chunkModules, bookTitle);
-    mergedModule.quizData = mergedModule.quizData.slice(0, args.questions);
+    mergedModule.quizData = mergedModule.quizData.slice(0, questions);
+    return mergedModule;
+}
+
+async function main() {
+    const args = parseArgs(process.argv.slice(2));
+
+    if (!args.input) {
+        console.error('Usage: node book_to_questions.js --input <book.txt> [--output <module.json>] [--title <book title>] [--questions 10]');
+        process.exit(1);
+    }
+
+    const apiKey = process.env.GEMINI_API_KEY;
+    const mergedModule = await buildModuleFromInput({
+        inputPath: args.input,
+        title: args.title,
+        questions: Number.isFinite(args.questions) ? args.questions : 10,
+        maxChars: Number.isFinite(args.maxChars) ? args.maxChars : 60000,
+        requestTimeoutMs: Number.isFinite(args.requestTimeoutMs) ? args.requestTimeoutMs : 120000,
+        retries: Number.isFinite(args.retries) ? args.retries : 3,
+        apiKey
+    });
     const formatted = JSON.stringify(mergedModule, null, 2);
 
     if (args.output) {
@@ -453,7 +467,26 @@ async function main() {
     }
 }
 
-main().catch(error => {
-    console.error(error.message);
-    process.exit(1);
-});
+if (require.main === module) {
+    main().catch(error => {
+        console.error(error.message);
+        process.exit(1);
+    });
+}
+
+module.exports = {
+    stripCodeFences,
+    splitTextIntoChunks,
+    distributeQuestions,
+    buildPrompt,
+    validateModule,
+    mergeModules,
+    fetchWithTimeout,
+    sleep,
+    generateChunkModule,
+    parsePdfBuffer,
+    readSourceFile,
+    buildModuleFromInput,
+    parseArgs,
+    main
+};

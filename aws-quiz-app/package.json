@@ -1,6 +1,12 @@
 {
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
   "dependencies": {
+    "express": "^5.2.1",
     "mammoth": "^1.12.1",
+    "multer": "^2.3.0",
     "pdf-parse": "^2.4.5"
   }
 }

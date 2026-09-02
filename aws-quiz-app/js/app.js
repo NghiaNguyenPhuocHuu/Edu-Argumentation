@@ -280,14 +280,16 @@ dom.navQuiz.addEventListener('click', () => {
     }
 });
 
-dom.customDataUpload.addEventListener('change', function(e) {
+dom.customDataUpload.addEventListener('change', async function(e) {
     const file = e.target.files[0];
     if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        try {
-            const parsedData = JSON.parse(e.target.result);
+    try {
+        const fileName = file.name.toLowerCase();
+
+        if (fileName.endsWith('.json')) {
+            const text = await file.text();
+            const parsedData = JSON.parse(text);
             if (!parsedData.tutorialData || !parsedData.quizData || !Array.isArray(parsedData.quizData)) {
                 throw new Error("Invalid JSON schema. Must contain 'tutorialData' object and 'quizData' array.");
             }
@@ -296,22 +298,42 @@ dom.customDataUpload.addEventListener('change', function(e) {
             quizData = parsedData.quizData;
             activeQuizData = quizData;
             cachedAiData = null;
-            
-            currentQuestionIndex = 0;
-            score = 0;
-            isAnswered = false;
+        } else {
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('title', file.name.replace(/\.[^.]+$/, '') || 'Uploaded Module');
+            formData.append('questions', '10');
 
-            renderTutorial();
-            setAppState(true, tutorialData.title || "Custom Course Module");
-            showLandingDashboard();
-            
-        } catch (error) {
-            console.error("JSON error:", error);
-            alert("Failed to load data: " + error.message);
+            const response = await fetch('/api/upload-module', {
+                method: 'POST',
+                body: formData
+            });
+
+            const result = await response.json().catch(() => ({}));
+
+            if (!response.ok || !result.tutorialData || !result.quizData || !Array.isArray(result.quizData)) {
+                throw new Error(result.error || 'The server could not convert this file into a learning module.');
+            }
+
+            tutorialData = result.tutorialData;
+            quizData = result.quizData;
+            activeQuizData = quizData;
+            cachedAiData = null;
         }
-        dom.customDataUpload.value = '';
-    };
-    reader.readAsText(file);
+
+        currentQuestionIndex = 0;
+        score = 0;
+        isAnswered = false;
+
+        renderTutorial();
+        setAppState(true, tutorialData.title || "Custom Course Module");
+        showLandingDashboard();
+    } catch (error) {
+        console.error("Module load error:", error);
+        alert("Failed to load data: " + error.message);
+    }
+
+    dom.customDataUpload.value = '';
 });
 
 // Helper Function that injects the WebComponent
